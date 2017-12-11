@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <ListPreference
+        android:defaultValue="@string/filter_litter_all"
+        android:entries="@array/filter_litter_options"
+        android:entryValues="@array/filter_litter_values"
+        android:key="@string/filter_litter_key"
+        android:title="@string/filter_litter_title" />
+</PreferenceScreen>

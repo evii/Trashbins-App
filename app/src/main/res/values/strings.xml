@@ -1,0 +1,28 @@
+<resources>
+    <string name="app_name">Odpadky</string>
+    <string name="title_activity_maps">Map</string>
+    <string name="google_maps_key">AIzaSyDiB4tWgjXTjiNKfjC6uuPlsmB3uBy6mzM</string>
+
+    <string name="filter_litter_colour_glass_label">Barevné sklo</string>
+    <string name="filter_litter_white_glass_label">Čiré sklo</string>
+    <string name="filter_litter_metal_label">Kovy</string>
+    <string name="filter_litter_plastic_label">Plasty</string>
+    <string name="filter_litter_paper_label">Papír</string>
+    <string name="filter_litter_carton_label">Nápojové kartóny</string>
+    <string name="filter_litter_all_label">Vše</string>
+
+    <string name="filter_litter_colour_glass">colour_glass</string>
+    <string name="filter_litter_white_glass">white_glass</string>
+    <string name="filter_litter_metal">metal</string>
+    <string name="filter_litter_plastic">plastic</string>
+    <string name="filter_litter_paper">paper</string>
+    <string name="filter_litter_carton">carton</string>
+    <string name="filter_litter_all">all</string>
+
+    <string name="filter_litter_key">filter_litter</string>
+    <string name="filter_litter_title">Druh odpadu</string>
+
+
+
+
+</resources>
