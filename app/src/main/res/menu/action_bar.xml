@@ -4,6 +4,6 @@
     <item
         android:id="@+id/action_filtr"
         android:orderInCategory="1"
-        android:title="Filtr"
+        android:title="Filter"
         app:showAsAction="always"/>
 </menu>

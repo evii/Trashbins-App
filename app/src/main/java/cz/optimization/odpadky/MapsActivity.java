@@ -23,9 +23,9 @@ import java.util.Set;
 
 import static java.security.AccessController.getContext;
 
-// TODO Sample data
-// TODO pridat shared preferences na lokalitu
-// TODO oridat info o vybranem typu odpadu
+
+// TODO preskocit jeden krok okno s radkem Druh odpadu - rovnou na preferences
+// TODO oridat info o vybranem typu odpadu - nejlepe rovnou do listy
 // TODO naplnit zdroj do SQLite
 // TODO po otevreni - upravit lokaci dle aktualni polohy
 
