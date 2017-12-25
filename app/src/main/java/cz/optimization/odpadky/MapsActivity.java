@@ -67,7 +67,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private ArrayList<Popelnice> paper = new ArrayList<Popelnice>();
     private ArrayList<Popelnice> carton = new ArrayList<Popelnice>();
 
-
     private LatLng ex1LL;
     private LatLng ex2LL;
     private LatLng ex3LL;
