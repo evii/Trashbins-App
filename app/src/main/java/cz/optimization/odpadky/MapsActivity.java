@@ -1,15 +1,21 @@
 package cz.optimization.odpadky;
 
+
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.support.v4.app.FragmentActivity;
+
 import android.os.Bundle;
+import android.support.v4.app.FragmentManager;
+
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.preference.PreferenceManager;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.Toast;
+
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -19,9 +25,13 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Set;
 
 import static java.security.AccessController.getContext;
+import static java.util.Collections.addAll;
 
 
 // TODO preskocit jeden krok okno s radkem Druh odpadu - rovnou na preferences
@@ -33,38 +43,160 @@ import static java.security.AccessController.getContext;
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
+    private static final String TAG = "MainActivity";
     // Add set of example popelnice objects
-    Popelnice ex1;
-    Popelnice ex2;
-    Popelnice ex3;
-    Popelnice ex4;
-    Popelnice ex5;
-    Popelnice ex6;
-    Popelnice ex7;
-    Popelnice ex8;
-    Popelnice ex9;
-    Popelnice ex10;
-    Popelnice ex11;
-    Popelnice ex12;
 
-    LatLng ex1LL;
-    LatLng ex2LL;
-    LatLng ex3LL;
-    LatLng ex4LL;
-    LatLng ex5LL;
-    LatLng ex6LL;
-    LatLng ex7LL;
-    LatLng ex8LL;
-    LatLng ex9LL;
-    LatLng ex10LL;
-    LatLng ex11LL;
-    LatLng ex12LL;
+    private Popelnice ex1;
+    private Popelnice ex2;
+    private Popelnice ex3;
+    private Popelnice ex4;
+    private Popelnice ex5;
+    private Popelnice ex6;
+    private Popelnice ex7;
+    private Popelnice ex8;
+    private Popelnice ex9;
+    private Popelnice ex10;
+    private Popelnice ex11;
+    private Popelnice ex12;
+
+    private ArrayList<Popelnice> all = new ArrayList<Popelnice>();
+    private ArrayList<Popelnice> coulourGlass = new ArrayList<Popelnice>();
+    private ArrayList<Popelnice> whiteGlass = new ArrayList<Popelnice>();
+    private ArrayList<Popelnice> metal = new ArrayList<Popelnice>();
+    private ArrayList<Popelnice> plastic = new ArrayList<Popelnice>();
+    private ArrayList<Popelnice> paper = new ArrayList<Popelnice>();
+    private ArrayList<Popelnice> carton = new ArrayList<Popelnice>();
+
+    private LatLng ex1LL;
+    private LatLng ex2LL;
+    private LatLng ex3LL;
+    private LatLng ex4LL;
+    private LatLng ex5LL;
+    private LatLng ex6LL;
+    private LatLng ex7LL;
+    private LatLng ex8LL;
+    private LatLng ex9LL;
+    private LatLng ex10LL;
+    private LatLng ex11LL;
+    private LatLng ex12LL;
+
+    private DialogInterface.OnClickListener selectedTrashbin = new DialogInterface.OnClickListener() {
+
+        @Override
+        public void onClick(DialogInterface dialog, int which) {
+            switch (which) {
+                case 0:
+                    mMap.clear();
+                    mMap.addMarker(new
+                            MarkerOptions().position(ex1LL).title(ex1.getAddress()).snippet("Naplněnost: " + (ex1.getFullness() * 100) + " %").
+                            icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
+                    mMap.addMarker(new
+                            MarkerOptions().position(ex2LL).title(ex2.getAddress()).snippet("Naplněnost: " + (ex2.getFullness() * 100) + " %").
+                            icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
+                    mMap.addMarker(new
+                            MarkerOptions().position(ex3LL).title(ex3.getAddress()).snippet("Naplněnost: " + (ex3.getFullness() * 100) + " %").
+                            icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET)));
+                    mMap.addMarker(new
+                            MarkerOptions().position(ex4LL).title(ex4.getAddress()).snippet("Naplněnost: " + (ex4.getFullness() * 100) + " %").
+                            icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET)));
+                    mMap.addMarker(new
+                            MarkerOptions().position(ex5LL).title(ex5.getAddress()).snippet("Naplněnost: " + (ex5.getFullness() * 100) + " %").
+                            icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA)));
+                    mMap.addMarker(new
+                            MarkerOptions().position(ex6LL).title(ex6.getAddress()).snippet("Naplněnost: " + (ex6.getFullness() * 100) + " %").
+                            icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA)));
+                    mMap.addMarker(new
+                            MarkerOptions().position(ex7LL).title(ex7.getAddress()).snippet("Naplněnost: " + (ex7.getFullness() * 100) + " %").
+                            icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE)));
+                    mMap.addMarker(new
+                            MarkerOptions().position(ex8LL).title(ex8.getAddress()).snippet("Naplněnost: " + (ex8.getFullness() * 100) + " %").
+                            icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE)));
+                    mMap.addMarker(new
+                            MarkerOptions().position(ex9LL).title(ex9.getAddress()).snippet("Naplněnost: " + (ex9.getFullness() * 100) + " %").
+                            icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)));
+                    mMap.addMarker(new
+                            MarkerOptions().position(ex10LL).title(ex10.getAddress()).snippet("Naplněnost: " + (ex10.getFullness() * 100) + " %").
+                            icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)));
+                    mMap.addMarker(new
+                            MarkerOptions().position(ex11LL).title(ex11.getAddress()).snippet("Naplněnost: " + (ex11.getFullness() * 100) + " %").
+                            icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW)));
+                    mMap.addMarker(new
+                            MarkerOptions().position(ex12LL).title(ex12.getAddress()).snippet("Naplněnost: " + (ex12.getFullness() * 100) + " %").
+                            icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW)));
+                    Log.v(TAG, "case all");
+                    break;
+                case 1:
+                    mMap.clear();
+                    mMap.addMarker(new
+                            MarkerOptions().position(ex1LL).title(ex1.getAddress()).snippet("Naplněnost: " + (ex1.getFullness() * 100) + " %").
+                            icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
+                    mMap.addMarker(new
+                            MarkerOptions().position(ex2LL).title(ex2.getAddress()).snippet("Naplněnost: " + (ex2.getFullness() * 100) + " %").
+                            icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
+                    Log.v(TAG, "case colourglass");
+                    break;
+                case 2:
+                    mMap.clear();
+                    mMap.addMarker(new
+                            MarkerOptions().position(ex3LL).title(ex3.getAddress()).snippet("Naplněnost: " + (ex3.getFullness() * 100) + " %").
+                            icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET)));
+                    mMap.addMarker(new
+                            MarkerOptions().position(ex4LL).title(ex4.getAddress()).snippet("Naplněnost: " + (ex4.getFullness() * 100) + " %").
+                            icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET)));
+                    Log.v(TAG, "case whiteglass");
+                    break;
+                case 3:
+                    mMap.clear();
+                    mMap.addMarker(new
+                            MarkerOptions().position(ex5LL).title(ex5.getAddress()).snippet("Naplněnost: " + (ex5.getFullness() * 100) + " %").
+                            icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA)));
+                    mMap.addMarker(new
+                            MarkerOptions().position(ex6LL).title(ex6.getAddress()).snippet("Naplněnost: " + (ex6.getFullness() * 100) + " %").
+                            icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA)));
+                    Log.v(TAG, "case metal");
+                    break;
+                case 4:
+                    mMap.clear();
+                    mMap.addMarker(new
+                            MarkerOptions().position(ex11LL).title(ex11.getAddress()).snippet("Naplněnost: " + (ex11.getFullness() * 100) + " %").
+                            icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW)));
+                    mMap.addMarker(new
+                            MarkerOptions().position(ex12LL).title(ex12.getAddress()).snippet("Naplněnost: " + (ex12.getFullness() * 100) + " %").
+                            icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW)));
+                    Log.v(TAG, "case plastic");
+                    break;
+                case 5:
+                    mMap.clear();
+                    mMap.addMarker(new
+                            MarkerOptions().position(ex9LL).title(ex9.getAddress()).snippet("Naplněnost: " + (ex9.getFullness() * 100) + " %").
+                            icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)));
+                    mMap.addMarker(new
+                            MarkerOptions().position(ex10LL).title(ex10.getAddress()).snippet("Naplněnost: " + (ex10.getFullness() * 100) + " %").
+                            icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)));
+                    Log.v(TAG, "case paper");
+                    break;
+                case 6:
+                    mMap.clear();
+                    mMap.addMarker(new
+                            MarkerOptions().position(ex7LL).title(ex7.getAddress()).snippet("Naplněnost: " + (ex7.getFullness() * 100) + " %").
+                            icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE)));
+                    mMap.addMarker(new
+                            MarkerOptions().position(ex8LL).title(ex8.getAddress()).snippet("Naplněnost: " + (ex8.getFullness() * 100) + " %").
+                            icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE)));
+                    Log.v(TAG, "case carton");
+                    break;
+
+            }
+        }
+    };
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
 
+        // creating Popelnice object
         ex1 = new Popelnice(50.0527355310001, 14.4178751490001, "Podolská 349/86", "Barevné sklo", 0.95);
         ex2 = new Popelnice(50.1341782590001, 14.4668577360001, "Formánkova 1653/3", "Barevné sklo", 0.80);
         ex3 = new Popelnice(50.034459306, 14.523705712, "Starobylá 881/13", "Čiré sklo", 0.5);
@@ -78,6 +210,16 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         ex11 = new Popelnice(50.030603252, 14.3099524040001, "K závětinám 727", "Plast", 0.63);
         ex12 = new Popelnice(50.0793594780001, 14.415627511, "Pštrossova 218/27", "Plast", 0.92);
 
+        // creating categories of trashbins as ArrayList
+        all.addAll(Arrays.asList(ex1, ex2, ex3, ex4, ex5, ex6, ex7, ex8, ex9, ex10, ex11, ex12));
+        coulourGlass.addAll(Arrays.asList(ex1, ex2));
+        whiteGlass.addAll(Arrays.asList(ex3, ex4));
+        metal.addAll(Arrays.asList(ex5, ex6));
+        carton.addAll(Arrays.asList(ex7, ex8));
+        paper.addAll(Arrays.asList(ex9, ex10));
+        plastic.addAll(Arrays.asList(ex11, ex12));
+
+        //getting position of each trashbin
         ex1LL = new LatLng(ex1.getLat(), ex1.getLong());
         ex2LL = new LatLng(ex2.getLat(), ex2.getLong());
         ex3LL = new LatLng(ex3.getLat(), ex3.getLong());
@@ -126,9 +268,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         int id = item.getItemId();
 
         if (id == R.id.action_filtr) {
-            Intent intent = new Intent(this, FilterActivity.class);
-            startActivity(intent);
 
+            FragmentManager fm = getSupportFragmentManager();
+            SelectTrashbinDialogFragment dialog = new SelectTrashbinDialogFragment();
+            dialog.setCallBack(selectedTrashbin);
+            dialog.show(fm, "dialog");
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -137,7 +281,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-        setupSharedPreferences();
 
 
         // LatLng TutorialsPoint = new LatLng(50.089468, 14.472460);
@@ -147,118 +290,5 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         float zoomLevel = 10.0f; //This goes up to 21
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(ex1LL, zoomLevel));
     }
-
-
-    private void setupSharedPreferences() {
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        loadLitterTypePreferences(sharedPreferences);
-    }
-
-    private void loadLitterTypePreferences(SharedPreferences sharedPreferences) {
-        displayLitterSet(sharedPreferences.getString(getString(R.string.filter_litter_key),
-                getString(R.string.filter_litter_all)));
-    }
-
-    private void displayLitterSet(String newLitterKey) {
-
-        //display all
-        if (newLitterKey.equals(getString(R.string.filter_litter_all))) {
-
-            mMap.addMarker(new
-                    MarkerOptions().position(ex1LL).title(ex1.getAddress()).snippet("Naplněnost: "+(ex1.getFullness()*100)+" %").
-                    icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
-            mMap.addMarker(new
-                    MarkerOptions().position(ex2LL).title(ex2.getAddress()).snippet("Naplněnost: "+(ex2.getFullness()*100)+" %").
-                    icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
-            mMap.addMarker(new
-                    MarkerOptions().position(ex3LL).title(ex3.getAddress()).snippet("Naplněnost: "+(ex3.getFullness()*100)+" %").
-                    icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET)));
-            mMap.addMarker(new
-                    MarkerOptions().position(ex4LL).title(ex4.getAddress()).snippet("Naplněnost: "+(ex4.getFullness()*100)+" %").
-                    icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET)));
-            mMap.addMarker(new
-                    MarkerOptions().position(ex5LL).title(ex5.getAddress()).snippet("Naplněnost: "+(ex5.getFullness()*100)+" %").
-                    icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA)));
-            mMap.addMarker(new
-                    MarkerOptions().position(ex6LL).title(ex6.getAddress()).snippet("Naplněnost: "+(ex6.getFullness()*100)+" %").
-                    icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA)));
-            mMap.addMarker(new
-                    MarkerOptions().position(ex7LL).title(ex7.getAddress()).snippet("Naplněnost: "+(ex7.getFullness()*100)+" %").
-                    icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE)));
-            mMap.addMarker(new
-                    MarkerOptions().position(ex8LL).title(ex8.getAddress()).snippet("Naplněnost: "+(ex8.getFullness()*100)+" %").
-                    icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE)));
-            mMap.addMarker(new
-                    MarkerOptions().position(ex9LL).title(ex9.getAddress()).snippet("Naplněnost: "+(ex9.getFullness()*100)+" %").
-                    icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)));
-            mMap.addMarker(new
-                    MarkerOptions().position(ex10LL).title(ex10.getAddress()).snippet("Naplněnost: "+(ex10.getFullness()*100)+" %").
-                    icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)));
-            mMap.addMarker(new
-                    MarkerOptions().position(ex11LL).title(ex11.getAddress()).snippet("Naplněnost: "+(ex11.getFullness()*100)+" %").
-                    icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW)));
-            mMap.addMarker(new
-                    MarkerOptions().position(ex12LL).title(ex12.getAddress()).snippet("Naplněnost: "+(ex12.getFullness()*100)+" %").
-                    icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW)));
-        }
-        // display colour glass
-        else if (newLitterKey.equals(getString(R.string.filter_litter_colour_glass))) {
-            mMap.addMarker(new
-                    MarkerOptions().position(ex1LL).title(ex1.getAddress()).snippet("Naplněnost: "+(ex1.getFullness()*100)+" %").
-                    icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
-            mMap.addMarker(new
-                    MarkerOptions().position(ex2LL).title(ex2.getAddress()).snippet("Naplněnost: "+(ex2.getFullness()*100)+" %").
-                    icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
-        }
-        // display white glass
-        else if (newLitterKey.equals(getString(R.string.filter_litter_white_glass))) {
-            mMap.addMarker(new
-                    MarkerOptions().position(ex3LL).title(ex3.getAddress()).snippet("Naplněnost: "+(ex3.getFullness()*100)+" %").
-                    icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET)));
-            mMap.addMarker(new
-                    MarkerOptions().position(ex4LL).title(ex4.getAddress()).snippet("Naplněnost: "+(ex4.getFullness()*100)+" %").
-                    icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET)));
-        }
-        // display metal
-        else if (newLitterKey.equals(getString(R.string.filter_litter_metal))) {
-            mMap.addMarker(new
-                    MarkerOptions().position(ex5LL).title(ex5.getAddress()).snippet("Naplněnost: "+(ex5.getFullness()*100)+" %").
-                    icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA)));
-            mMap.addMarker(new
-                    MarkerOptions().position(ex6LL).title(ex6.getAddress()).snippet("Naplněnost: "+(ex6.getFullness()*100)+" %").
-                    icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA)));
-        }
-
-        // display carton
-        else if (newLitterKey.equals(getString(R.string.filter_litter_carton))) {
-            mMap.addMarker(new
-                    MarkerOptions().position(ex7LL).title(ex7.getAddress()).snippet("Naplněnost: "+(ex7.getFullness()*100)+" %").
-                    icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE)));
-            mMap.addMarker(new
-                    MarkerOptions().position(ex8LL).title(ex8.getAddress()).snippet("Naplněnost: "+(ex8.getFullness()*100)+" %").
-                    icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE)));
-        }
-
-        // display paper
-        else if (newLitterKey.equals(getString(R.string.filter_litter_paper))) {
-            mMap.addMarker(new
-                    MarkerOptions().position(ex9LL).title(ex9.getAddress()).snippet("Naplněnost: "+(ex9.getFullness()*100)+" %").
-                    icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)));
-            mMap.addMarker(new
-                    MarkerOptions().position(ex10LL).title(ex10.getAddress()).snippet("Naplněnost: "+(ex10.getFullness()*100)+" %").
-                    icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)));
-        }
-        // display plastic
-        else if (newLitterKey.equals(getString(R.string.filter_litter_plastic))) {
-            mMap.addMarker(new
-                    MarkerOptions().position(ex11LL).title(ex11.getAddress()).snippet("Naplněnost: "+(ex11.getFullness()*100)+" %").
-                    icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW)));
-            mMap.addMarker(new
-                    MarkerOptions().position(ex12LL).title(ex12.getAddress()).snippet("Naplněnost: "+(ex12.getFullness()*100)+" %").
-                    icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW)));
-        }
-
-    }
-
 
 }

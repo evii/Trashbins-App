@@ -21,6 +21,7 @@
 
     <string name="filter_litter_key">filter_litter</string>
     <string name="filter_litter_title">Type of trashbin</string>
+    <string name="filter_litter_title_dialog">Select type of trashbin:</string>
 
 
 
