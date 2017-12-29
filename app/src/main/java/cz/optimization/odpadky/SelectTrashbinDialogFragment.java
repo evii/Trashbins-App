@@ -1,17 +1,12 @@
 package cz.optimization.odpadky;
 
-import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
 import android.support.v4.app.DialogFragment;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
-import android.util.Log;
 
-
-import static android.R.attr.duration;
-import static android.icu.lang.UCharacter.GraphemeClusterBreak.L;
 
 /**
  * Created by evi on 18. 12. 2017.

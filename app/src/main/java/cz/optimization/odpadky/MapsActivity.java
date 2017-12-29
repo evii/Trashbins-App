@@ -21,7 +21,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 
-// TODO vyresit aby se zachovala selekce pri orevraceni telefonu
 // TODO oridat info o vybranem typu odpadu - nejlepe rovnou do listy
 // TODO naplnit zdroj do SQLite
 // TODO po otevreni - upravit lokaci dle aktualni polohy
@@ -32,7 +31,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private GoogleMap mMap;
     private int position = 0;
-    private static final String TAG = "MainActivity";
 
     // Add set of example popelnice objects
     private Popelnice ex1;
@@ -55,6 +53,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private ArrayList<Popelnice> plasticAL = new ArrayList<Popelnice>();
     private ArrayList<Popelnice> paperAL = new ArrayList<Popelnice>();
     private ArrayList<Popelnice> cartonAL = new ArrayList<Popelnice>();
+
+    private static final String POSITION_KEY = "position";
+    private int previousPosition;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,7 +89,19 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+        if (savedInstanceState != null) {
+            if (savedInstanceState.containsKey(POSITION_KEY)) {
+                previousPosition = savedInstanceState.getInt(POSITION_KEY);
+            }
+        } else {
+            previousPosition = position;
+        }
+    }
 
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt(POSITION_KEY, position);
     }
 
     @Override
@@ -128,7 +141,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-        addAllTrashbins();
+        onPositiveClick(previousPosition);
         float zoomLevel = 10.0f; //This goes up to 21
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(ex1.getLat(), ex1.getLong()), zoomLevel));
     }
@@ -287,5 +300,4 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                                     .defaultMarker(BitmapDescriptorFactory.HUE_YELLOW)));
         }
     }
-
 }
