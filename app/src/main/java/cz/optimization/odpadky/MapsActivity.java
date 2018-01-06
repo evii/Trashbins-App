@@ -1,12 +1,14 @@
 package cz.optimization.odpadky;
 
 
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -17,8 +19,12 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import java.io.IOException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+
+import cz.optimization.odpadky.data.TrashbinDbHelper;
 
 
 // TODO oridat info o vybranem typu odpadu - nejlepe rovnou do listy
@@ -56,6 +62,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private static final String POSITION_KEY = "position";
     private int previousPosition;
+    private SQLiteDatabase mDb;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -96,6 +103,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         } else {
             previousPosition = position;
         }
+
+        //test that db opens:
+
+       TrashbinDbHelper dbHelper = new TrashbinDbHelper(this);
+        String noOfPoints = dbHelper.showNumberOfPoints();
+        Toast toast = Toast.makeText(this, "mame tu "+noOfPoints+" bodu", Toast.LENGTH_LONG);
+        toast.show();
+
     }
 
     @Override
