@@ -5,6 +5,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.net.Uri;
 import android.widget.Toast;
 
 import java.io.File;
@@ -57,9 +58,10 @@ public class TrashbinDbHelper extends SQLiteOpenHelper {
 
     /**
      * Check if the database already exist to avoid re-copying the file each time we open the application.
+     *
      * @return true if it exists, false if it doesn't
      */
-    private boolean checkDataBase(){
+    private boolean checkDataBase() {
         File dbFile = myContext.getDatabasePath(DB_NAME);
         return dbFile.exists();
     }
@@ -68,8 +70,8 @@ public class TrashbinDbHelper extends SQLiteOpenHelper {
      * Copies your database from your local assets-folder to the just created empty database in the
      * system folder, from where it can be accessed and handled.
      * This is done by transfering bytestream.
-     * */
-    private void copyDataBase() throws IOException{
+     */
+    private void copyDataBase() throws IOException {
 
         //Open your local db as the input stream
         InputStream myInput = myContext.getAssets().open(DB_NAME);
@@ -83,7 +85,7 @@ public class TrashbinDbHelper extends SQLiteOpenHelper {
         //transfer bytes from the inputfile to the outputfile
         byte[] buffer = new byte[1024];
         int length;
-        while ((length = myInput.read(buffer))>0){
+        while ((length = myInput.read(buffer)) > 0) {
             myOutput.write(buffer, 0, length);
         }
 
@@ -105,7 +107,7 @@ public class TrashbinDbHelper extends SQLiteOpenHelper {
     @Override
     public synchronized void close() {
 
-        if(myDataBase != null)
+        if (myDataBase != null)
             myDataBase.close();
 
         super.close();
@@ -126,52 +128,46 @@ public class TrashbinDbHelper extends SQLiteOpenHelper {
     // You could return cursors by doing "return myDataBase.query(....)" so it'd be easy
     // to you to create adapters for your views.
 
-    public String showNumberOfPoints() {
-
-
+    public void createOpenDb() {
         try {
-
             createDataBase();
-
         } catch (IOException ioe) {
-
             throw new Error("Unable to create database");
-
         }
 
         try {
-
             openDataBase();
-
         } catch (SQLException sqle) {
-
             try {
                 throw sqle;
             } catch (SQLException e) {
                 e.printStackTrace();
             }
-
         }
+    }
 
-/**
-        Cursor cursor = myDataBase.rawQuery("SELECT name FROM sqlite_master WHERE type='table' AND name!='android_metadata' order by name",
-                null);
-
-        cursor.moveToFirst();
-        String result="";
-
-        while (!cursor.isAfterLast()) {
-
-            result = cursor.getString(0);
- */
-
-
-              Cursor cursor = myDataBase.query(TrashbinContract.TrashbinEntry.TABLE_NAME,null, null, null,
-                 null, null, null);
-              String result = Integer.toString(cursor.getCount());
+    public String showNumberOfPoints() {
+        Cursor cursor = myDataBase.query(TrashbinContract.TrashbinEntry.TABLE_NAME, null, null, null,
+                null, null, null);
+        String result = Integer.toString(cursor.getCount());
 
         return result;
     }
+
+    public Cursor showPoints() {
+        //  Cursor cursor = myDataBase.query(TrashbinContract.TrashbinEntry.TABLE_NAME,null, null, null,
+        //         null, null, null);
+        createOpenDb();
+        Uri uri = TrashbinContract.TrashbinEntry.CONTENT_URI;
+        String uriString = uri.toString();
+        Toast toast = Toast.makeText(myContext, uriString,Toast.LENGTH_LONG);
+        toast.show();
+
+        Cursor cursor = myContext.getContentResolver().query(uri, null, null, null,
+                null);
+        return cursor;
     }
+
+}
 
 

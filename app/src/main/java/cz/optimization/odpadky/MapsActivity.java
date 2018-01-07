@@ -1,10 +1,15 @@
 package cz.optimization.odpadky;
 
 
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.AsyncTaskLoader;
+import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -19,16 +24,14 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-import java.io.IOException;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import cz.optimization.odpadky.data.TrashbinContract;
 import cz.optimization.odpadky.data.TrashbinDbHelper;
 
-
+// TODO pridat do sqlite zdroje info o naplnenosti
 // TODO oridat info o vybranem typu odpadu - nejlepe rovnou do listy
-// TODO naplnit zdroj do SQLite
 // TODO po otevreni - upravit lokaci dle aktualni polohy
 
 
@@ -37,6 +40,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private GoogleMap mMap;
     private int position = 0;
+
+    private static final String TAG = MapsActivity.class.getSimpleName();
+    private static final int TASK_LOADER_ID = 0;
+
+    private Cursor mTrashbinsCursor;
 
     // Add set of example popelnice objects
     private Popelnice ex1;
@@ -103,14 +111,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         } else {
             previousPosition = position;
         }
-
-        //test that db opens:
-
-       TrashbinDbHelper dbHelper = new TrashbinDbHelper(this);
-        String noOfPoints = dbHelper.showNumberOfPoints();
-        Toast toast = Toast.makeText(this, "mame tu "+noOfPoints+" bodu", Toast.LENGTH_LONG);
-        toast.show();
-
     }
 
     @Override
@@ -190,22 +190,74 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
+
+
     public void addAllTrashbins() {
+        TrashbinDbHelper dbHelper = new TrashbinDbHelper(this);
+
+        Cursor cursor = dbHelper.showPoints();
+
+        int locationCount = 0;
+        String address = "";
+        double lat = 0;
+        double lng = 0;
+
         mMap.clear();
-        Popelnice location;
-        int size = allAL.size();
-        for (int i = 0; i < size; i++) {
-            location = allAL.get(i);
+        // Number of locations available in the SQLite database table
+        locationCount = cursor.getCount();
+
+        // Move the current record pointer to the first row of the table
+        cursor.moveToFirst();
+
+        for (int i = 0; i < locationCount; i++) {
+
+            // Get the latitude
+            lat = cursor.getDouble(cursor.getColumnIndex(TrashbinContract.TrashbinEntry.COLUMN_LAT));
+
+            // Get the longitude
+            lng = cursor.getDouble(cursor.getColumnIndex(TrashbinContract.TrashbinEntry.COLUMN_LONG));
+
+            // Creating an instance of LatLng to plot the location in Google Maps
+            LatLng location = new LatLng(lat, lng);
+
+            address = cursor.getString(cursor.getColumnIndex(TrashbinContract.TrashbinEntry.COLUMN_ADDRESS));
+
+            // Drawing the marker in the Google Maps
             Marker m = mMap
                     .addMarker(new MarkerOptions()
-                            .position(
-                                    new LatLng(location.getLat(),
-                                            location.getLong()))
-                            .title(location.getAddress())
-                            .snippet("Naplněnost: " + (location.getFullness() * 100) + " %")
+                            .position(location)
+                            .title(address)
+                            // .snippet("Naplněnost: " + (location.getFullness() * 100) + " %")
                             .icon(BitmapDescriptorFactory
                                     .defaultMarker(BitmapDescriptorFactory.HUE_RED)));
+
+            // Traverse the pointer to the next row
+            cursor.moveToNext();
         }
+
+        /** if(locationCount>0){
+         // Moving CameraPosition to last clicked position
+         googleMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(lat,lng)));
+
+         // Setting the zoom level in the map on last position  is clicked
+         googleMap.animateCamera(CameraUpdateFactory.zoomTo(zoom));
+         }*/
+
+
+        /** Popelnice location;
+         int size = allAL.size();
+         for (int i = 0; i < size; i++) {
+         location = allAL.get(i);
+         Marker m = mMap
+         .addMarker(new MarkerOptions()
+         .position(
+         new LatLng(location.getLat(),
+         location.getLong()))
+         .title(location.getAddress())
+         .snippet("Naplněnost: " + (location.getFullness() * 100) + " %")
+         .icon(BitmapDescriptorFactory
+         .defaultMarker(BitmapDescriptorFactory.HUE_RED)));
+         }*/
     }
 
     public void addColourGlassTrashbins() {

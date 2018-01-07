@@ -1,5 +1,6 @@
 package cz.optimization.odpadky.data;
 
+import android.net.Uri;
 import android.provider.BaseColumns;
 
 /**
@@ -8,7 +9,16 @@ import android.provider.BaseColumns;
 
 public class TrashbinContract {
 
+    public static final String AUTHORITY = "cz.optimization.odpadky";
+    public static final Uri BASE_CONTENT_URI = Uri.parse("content://" + AUTHORITY);
+    public static final String PATH_TRASHBINS = "final";
+
+
     public static final class TrashbinEntry implements BaseColumns {
+
+        public static final Uri CONTENT_URI =
+                BASE_CONTENT_URI.buildUpon().appendPath(PATH_TRASHBINS).build();
+
 
         public static final String TABLE_NAME = "final";
 
