@@ -26,7 +26,8 @@ public class TrashbinContract {
         public static final String COLUMN_LAT = "lat";
         public static final String COLUMN_TRASHTYPE = "trashtype";
         public static final String COLUMN_ADDRESS = "address";
-
+        public static final String COLUMN_PROGRESS = "progress";
+        public static final String COLUMN_TRASHTYPE_INDEX = "trashtype_index";
 
     }
 }

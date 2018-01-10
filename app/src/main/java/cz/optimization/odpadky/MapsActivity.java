@@ -2,18 +2,12 @@ package cz.optimization.odpadky;
 
 
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.app.LoaderManager;
-import android.support.v4.content.AsyncTaskLoader;
-import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -24,14 +18,11 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-
 import cz.optimization.odpadky.data.TrashbinContract;
 import cz.optimization.odpadky.data.TrashbinDbHelper;
 
-// TODO pridat do sqlite zdroje info o naplnenosti
-// TODO oridat info o vybranem typu odpadu - nejlepe rovnou do listy
+
+// TODO pridat info o vybranem typu odpadu - nejlepe rovnou do listy
 // TODO po otevreni - upravit lokaci dle aktualni polohy
 
 
@@ -41,64 +32,16 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private GoogleMap mMap;
     private int position = 0;
 
-    private static final String TAG = MapsActivity.class.getSimpleName();
-    private static final int TASK_LOADER_ID = 0;
-
-    private Cursor mTrashbinsCursor;
-
-    // Add set of example popelnice objects
-    private Popelnice ex1;
-    private Popelnice ex2;
-    private Popelnice ex3;
-    private Popelnice ex4;
-    private Popelnice ex5;
-    private Popelnice ex6;
-    private Popelnice ex7;
-    private Popelnice ex8;
-    private Popelnice ex9;
-    private Popelnice ex10;
-    private Popelnice ex11;
-    private Popelnice ex12;
-
-    private ArrayList<Popelnice> allAL = new ArrayList<Popelnice>();
-    private ArrayList<Popelnice> colourGlassAL = new ArrayList<Popelnice>();
-    private ArrayList<Popelnice> whiteGlassAL = new ArrayList<Popelnice>();
-    private ArrayList<Popelnice> metalAL = new ArrayList<Popelnice>();
-    private ArrayList<Popelnice> plasticAL = new ArrayList<Popelnice>();
-    private ArrayList<Popelnice> paperAL = new ArrayList<Popelnice>();
-    private ArrayList<Popelnice> cartonAL = new ArrayList<Popelnice>();
+    TrashbinDbHelper dbHelper;
+    Cursor cursor;
 
     private static final String POSITION_KEY = "position";
     private int previousPosition;
-    private SQLiteDatabase mDb;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
-
-        // creating Popelnice object
-        ex1 = new Popelnice(50.0527355310001, 14.4178751490001, "Podolská 349/86", "Barevné sklo", 0.95);
-        ex2 = new Popelnice(50.1341782590001, 14.4668577360001, "Formánkova 1653/3", "Barevné sklo", 0.80);
-        ex3 = new Popelnice(50.034459306, 14.523705712, "Starobylá 881/13", "Čiré sklo", 0.5);
-        ex4 = new Popelnice(50.089533063, 14.306763861, "Komárovská 1640", "Čiré sklo", 0.75);
-        ex5 = new Popelnice(50.0548082390001, 14.5295966310001, "Miranova 282/11", "Kovy", 0.41);
-        ex6 = new Popelnice(50.0926487360001, 14.385085052, "Střešovická 400/3", "Kovy", 0.15);
-        ex7 = new Popelnice(50.1266244980001, 14.5775854830001, "K Radonicům 84/16", "Nápojové kartóny", 0.93);
-        ex8 = new Popelnice(50.1499694300001, 14.4974263660001, "Na blatech 242/3", "Nápojové kartóny", 1);
-        ex9 = new Popelnice(50.0267829960001, 14.6035724650001, "Za pivovarem 1070", "Papír", 0.21);
-        ex10 = new Popelnice(50.0914764, 14.432235282, "Petrské náměstí 1206/3", "Papír", 1);
-        ex11 = new Popelnice(50.030603252, 14.3099524040001, "K závětinám 727", "Plast", 0.63);
-        ex12 = new Popelnice(50.0793594780001, 14.415627511, "Pštrossova 218/27", "Plast", 0.92);
-
-        // creating categories of trashbins as ArrayList
-        allAL.addAll(Arrays.asList(ex1, ex2, ex3, ex4, ex5, ex6, ex7, ex8, ex9, ex10, ex11, ex12));
-        colourGlassAL.addAll(Arrays.asList(ex1, ex2));
-        whiteGlassAL.addAll(Arrays.asList(ex3, ex4));
-        metalAL.addAll(Arrays.asList(ex5, ex6));
-        cartonAL.addAll(Arrays.asList(ex7, ex8));
-        paperAL.addAll(Arrays.asList(ex9, ex10));
-        plasticAL.addAll(Arrays.asList(ex11, ex12));
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -157,50 +100,53 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
         onPositiveClick(previousPosition);
-        float zoomLevel = 10.0f; //This goes up to 21
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(ex1.getLat(), ex1.getLong()), zoomLevel));
+        float zoomLevel = 15.5f; //This goes up to 21
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(50.0889853530001, 14.4723441130001), zoomLevel));
     }
+
+
 
     @Override
     public void onPositiveClick(int position) {
         this.position = position;
+        dbHelper = new TrashbinDbHelper(this);
+        dbHelper.createOpenDb();
 
         switch (position) {
             case 0:
-                addAllTrashbins();
+                cursor = dbHelper.selectAllPoints();
                 break;
             case 1:
-                addColourGlassTrashbins();
+                cursor = dbHelper.selectOneTypePoints(new String [] {"BS"});
                 break;
             case 2:
-                addWhiteGlassTrashbins();
+                cursor = dbHelper.selectOneTypePoints(new String [] {"CS"});
                 break;
             case 3:
-                addMetalTrashbins();
+                cursor = dbHelper.selectOneTypePoints(new String [] {"K"});
                 break;
             case 4:
-                addPlasticTrashbins();
+                cursor = dbHelper.selectOneTypePoints(new String [] {"PL"});
                 break;
             case 5:
-                addPaperTrashbins();
+                cursor = dbHelper.selectOneTypePoints(new String [] {"PA"});
                 break;
             case 6:
-                addCartonTrashbins();
+                cursor = dbHelper.selectOneTypePoints(new String [] {"NK"});
                 break;
         }
+        addPoints(cursor);
     }
 
-
-
-    public void addAllTrashbins() {
-        TrashbinDbHelper dbHelper = new TrashbinDbHelper(this);
-
-        Cursor cursor = dbHelper.showPoints();
+    private void addPoints(Cursor cursor) {
 
         int locationCount = 0;
         String address = "";
         double lat = 0;
         double lng = 0;
+        double progress = 0;
+        String trashType = "";
+        Float colour = BitmapDescriptorFactory.HUE_ROSE;
 
         mMap.clear();
         // Number of locations available in the SQLite database table
@@ -211,160 +157,49 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         for (int i = 0; i < locationCount; i++) {
 
-            // Get the latitude
             lat = cursor.getDouble(cursor.getColumnIndex(TrashbinContract.TrashbinEntry.COLUMN_LAT));
-
-            // Get the longitude
             lng = cursor.getDouble(cursor.getColumnIndex(TrashbinContract.TrashbinEntry.COLUMN_LONG));
-
-            // Creating an instance of LatLng to plot the location in Google Maps
             LatLng location = new LatLng(lat, lng);
 
             address = cursor.getString(cursor.getColumnIndex(TrashbinContract.TrashbinEntry.COLUMN_ADDRESS));
+
+            progress = cursor.getDouble(cursor.getColumnIndex(TrashbinContract.TrashbinEntry.COLUMN_PROGRESS));
+
+            trashType = cursor.getString(cursor.getColumnIndex(TrashbinContract.TrashbinEntry.COLUMN_TRASHTYPE_INDEX));
+
+            // Getting colour of the point
+            switch (trashType) {
+                case "BS":
+                    colour = BitmapDescriptorFactory.HUE_GREEN;
+                    break;
+                case "CS":
+                    colour = BitmapDescriptorFactory.HUE_AZURE;
+                    break;
+                case "K":
+                    colour = BitmapDescriptorFactory.HUE_MAGENTA;
+                    break;
+                case "NK":
+                    colour = BitmapDescriptorFactory.HUE_ORANGE;
+                    break;
+                case "PA":
+                    colour = BitmapDescriptorFactory.HUE_BLUE;
+                    break;
+                case "PL":
+                    colour = BitmapDescriptorFactory.HUE_YELLOW;
+                    break;
+            }
 
             // Drawing the marker in the Google Maps
             Marker m = mMap
                     .addMarker(new MarkerOptions()
                             .position(location)
                             .title(address)
-                            // .snippet("Naplněnost: " + (location.getFullness() * 100) + " %")
+                            .snippet("Naplněnost: " + (progress * 100) + " %")
                             .icon(BitmapDescriptorFactory
-                                    .defaultMarker(BitmapDescriptorFactory.HUE_RED)));
+                                    .defaultMarker(colour)));
 
             // Traverse the pointer to the next row
             cursor.moveToNext();
-        }
-
-        /** if(locationCount>0){
-         // Moving CameraPosition to last clicked position
-         googleMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(lat,lng)));
-
-         // Setting the zoom level in the map on last position  is clicked
-         googleMap.animateCamera(CameraUpdateFactory.zoomTo(zoom));
-         }*/
-
-
-        /** Popelnice location;
-         int size = allAL.size();
-         for (int i = 0; i < size; i++) {
-         location = allAL.get(i);
-         Marker m = mMap
-         .addMarker(new MarkerOptions()
-         .position(
-         new LatLng(location.getLat(),
-         location.getLong()))
-         .title(location.getAddress())
-         .snippet("Naplněnost: " + (location.getFullness() * 100) + " %")
-         .icon(BitmapDescriptorFactory
-         .defaultMarker(BitmapDescriptorFactory.HUE_RED)));
-         }*/
-    }
-
-    public void addColourGlassTrashbins() {
-        mMap.clear();
-        Popelnice location;
-        int size = colourGlassAL.size();
-        for (int i = 0; i < size; i++) {
-            location = colourGlassAL.get(i);
-            Marker m = mMap
-                    .addMarker(new MarkerOptions()
-                            .position(
-                                    new LatLng(location.getLat(),
-                                            location.getLong()))
-                            .title(location.getAddress())
-                            .snippet("Naplněnost: " + (location.getFullness() * 100) + " %")
-                            .icon(BitmapDescriptorFactory
-                                    .defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
-        }
-    }
-
-    public void addWhiteGlassTrashbins() {
-        mMap.clear();
-        Popelnice location;
-        int size = whiteGlassAL.size();
-        for (int i = 0; i < size; i++) {
-            location = whiteGlassAL.get(i);
-            Marker m = mMap
-                    .addMarker(new MarkerOptions()
-                            .position(
-                                    new LatLng(location.getLat(),
-                                            location.getLong()))
-                            .title(location.getAddress())
-                            .snippet("Naplněnost: " + (location.getFullness() * 100) + " %")
-                            .icon(BitmapDescriptorFactory
-                                    .defaultMarker(BitmapDescriptorFactory.HUE_VIOLET)));
-        }
-    }
-
-    public void addMetalTrashbins() {
-        mMap.clear();
-        Popelnice location;
-        int size = metalAL.size();
-        for (int i = 0; i < size; i++) {
-            location = metalAL.get(i);
-            Marker m = mMap
-                    .addMarker(new MarkerOptions()
-                            .position(
-                                    new LatLng(location.getLat(),
-                                            location.getLong()))
-                            .title(location.getAddress())
-                            .snippet("Naplněnost: " + (location.getFullness() * 100) + " %")
-                            .icon(BitmapDescriptorFactory
-                                    .defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA)));
-        }
-    }
-
-    public void addPlasticTrashbins() {
-        mMap.clear();
-        Popelnice location;
-        int size = plasticAL.size();
-        for (int i = 0; i < size; i++) {
-            location = plasticAL.get(i);
-            Marker m = mMap
-                    .addMarker(new MarkerOptions()
-                            .position(
-                                    new LatLng(location.getLat(),
-                                            location.getLong()))
-                            .title(location.getAddress())
-                            .snippet("Naplněnost: " + (location.getFullness() * 100) + " %")
-                            .icon(BitmapDescriptorFactory
-                                    .defaultMarker(BitmapDescriptorFactory.HUE_ORANGE)));
-        }
-    }
-
-    public void addPaperTrashbins() {
-        mMap.clear();
-        Popelnice location;
-        int size = paperAL.size();
-        for (int i = 0; i < size; i++) {
-            location = paperAL.get(i);
-            Marker m = mMap
-                    .addMarker(new MarkerOptions()
-                            .position(
-                                    new LatLng(location.getLat(),
-                                            location.getLong()))
-                            .title(location.getAddress())
-                            .snippet("Naplněnost: " + (location.getFullness() * 100) + " %")
-                            .icon(BitmapDescriptorFactory
-                                    .defaultMarker(BitmapDescriptorFactory.HUE_BLUE)));
-        }
-    }
-
-    public void addCartonTrashbins() {
-        mMap.clear();
-        Popelnice location;
-        int size = cartonAL.size();
-        for (int i = 0; i < size; i++) {
-            location = cartonAL.get(i);
-            Marker m = mMap
-                    .addMarker(new MarkerOptions()
-                            .position(
-                                    new LatLng(location.getLat(),
-                                            location.getLong()))
-                            .title(location.getAddress())
-                            .snippet("Naplněnost: " + (location.getFullness() * 100) + " %")
-                            .icon(BitmapDescriptorFactory
-                                    .defaultMarker(BitmapDescriptorFactory.HUE_YELLOW)));
         }
     }
 }

@@ -3,10 +3,7 @@ package cz.optimization.odpadky.data;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.net.Uri;
-import android.widget.Toast;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -29,7 +26,7 @@ public class TrashbinDbHelper extends SQLiteOpenHelper {
 
     //Constructor
     public TrashbinDbHelper(Context context) {
-        super(context, DB_NAME, null, 1);
+        super(context, DB_NAME, null, 2);
         this.myContext = context;
         DB_PATH = myContext.getDatabasePath(DB_NAME).toString();
     }
@@ -77,7 +74,7 @@ public class TrashbinDbHelper extends SQLiteOpenHelper {
         InputStream myInput = myContext.getAssets().open(DB_NAME);
 
         // Path to the just created empty db
-        String outFileName = DB_PATH + DB_NAME;
+        String outFileName = DB_PATH;
 
         //Open the empty db as the output stream
         OutputStream myOutput = new FileOutputStream(outFileName);
@@ -99,7 +96,7 @@ public class TrashbinDbHelper extends SQLiteOpenHelper {
     public void openDataBase() throws SQLException {
 
         //Open the database
-        String myPath = DB_PATH + DB_NAME;
+        String myPath = DB_PATH;
         myDataBase = SQLiteDatabase.openDatabase(myPath, null, SQLiteDatabase.OPEN_READONLY);
 
     }
@@ -146,28 +143,19 @@ public class TrashbinDbHelper extends SQLiteOpenHelper {
         }
     }
 
-    public String showNumberOfPoints() {
-        Cursor cursor = myDataBase.query(TrashbinContract.TrashbinEntry.TABLE_NAME, null, null, null,
-                null, null, null);
-        String result = Integer.toString(cursor.getCount());
-
-        return result;
-    }
-
-    public Cursor showPoints() {
-        //  Cursor cursor = myDataBase.query(TrashbinContract.TrashbinEntry.TABLE_NAME,null, null, null,
-        //         null, null, null);
-        createOpenDb();
-        Uri uri = TrashbinContract.TrashbinEntry.CONTENT_URI;
-        String uriString = uri.toString();
-        Toast toast = Toast.makeText(myContext, uriString,Toast.LENGTH_LONG);
-        toast.show();
-
-        Cursor cursor = myContext.getContentResolver().query(uri, null, null, null,
+    public Cursor selectAllPoints() {
+        Cursor cursor = myContext.getContentResolver().query(TrashbinContract.TrashbinEntry.CONTENT_URI, null, null, null,
                 null);
         return cursor;
     }
 
+    public Cursor selectOneTypePoints(String [] trashTypeIndex) {
+        String selection = TrashbinContract.TrashbinEntry.COLUMN_TRASHTYPE_INDEX + "=?";
+        String [] selArgs = trashTypeIndex;
+        Cursor cursor = myContext.getContentResolver().query(TrashbinContract.TrashbinEntry.CONTENT_URI, null, selection,selArgs,
+                null);
+        return cursor;
+    }
 }
 
 
