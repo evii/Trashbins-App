@@ -148,7 +148,7 @@ public class TrashbinDbHelper extends SQLiteOpenHelper {
     }
 
     public Cursor selectAllPoints() throws ExecutionException, InterruptedException {
-       Cursor c = new FetchAllLocations().execute().get();
+        Cursor c = new FetchAllLocations().execute().get();
         return c;
     }
 
