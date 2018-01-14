@@ -210,8 +210,6 @@ public class TrashbinDbHelper extends SQLiteOpenHelper {
             mCursor = cursor;
         }
     }
-
-
 }
 
 
