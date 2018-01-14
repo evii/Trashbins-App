@@ -27,7 +27,6 @@ import cz.optimization.odpadky.data.TrashbinDbHelper;
 // TODO pridat info o vybranem typu odpadu - nejlepe rovnou do listy
 // TODO po otevreni - upravit lokaci dle aktualni polohy
 
-
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback,
         SelectTrashbinDialogFragment.AlertPositiveListener {
 
@@ -107,7 +106,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
 
-
     @Override
     public void onPositiveClick(int position) {
         this.position = position;
@@ -126,7 +124,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 break;
             case 1:
                 try {
-                    cursor = dbHelper.selectOneTypePoints(new String [] {"BS"});
+                    cursor = dbHelper.selectOneTypePoints(new String[]{"BS"});
                 } catch (ExecutionException e) {
                     e.printStackTrace();
                 } catch (InterruptedException e) {
@@ -135,7 +133,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 break;
             case 2:
                 try {
-                    cursor = dbHelper.selectOneTypePoints(new String [] {"CS"});
+                    cursor = dbHelper.selectOneTypePoints(new String[]{"CS"});
                 } catch (ExecutionException e) {
                     e.printStackTrace();
                 } catch (InterruptedException e) {
@@ -144,7 +142,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 break;
             case 3:
                 try {
-                    cursor = dbHelper.selectOneTypePoints(new String [] {"K"});
+                    cursor = dbHelper.selectOneTypePoints(new String[]{"K"});
                 } catch (ExecutionException e) {
                     e.printStackTrace();
                 } catch (InterruptedException e) {
@@ -153,7 +151,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 break;
             case 4:
                 try {
-                    cursor = dbHelper.selectOneTypePoints(new String [] {"PL"});
+                    cursor = dbHelper.selectOneTypePoints(new String[]{"PL"});
                 } catch (ExecutionException e) {
                     e.printStackTrace();
                 } catch (InterruptedException e) {
@@ -162,7 +160,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 break;
             case 5:
                 try {
-                    cursor = dbHelper.selectOneTypePoints(new String [] {"PA"});
+                    cursor = dbHelper.selectOneTypePoints(new String[]{"PA"});
                 } catch (ExecutionException e) {
                     e.printStackTrace();
                 } catch (InterruptedException e) {
@@ -171,7 +169,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 break;
             case 6:
                 try {
-                    cursor = dbHelper.selectOneTypePoints(new String [] {"NK"});
+                    cursor = dbHelper.selectOneTypePoints(new String[]{"NK"});
                 } catch (ExecutionException e) {
                     e.printStackTrace();
                 } catch (InterruptedException e) {
