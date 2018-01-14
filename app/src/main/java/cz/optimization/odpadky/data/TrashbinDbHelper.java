@@ -1,9 +1,11 @@
 package cz.optimization.odpadky.data;
 
+import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.os.AsyncTask;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -11,6 +13,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.sql.SQLException;
+import java.util.concurrent.ExecutionException;
 
 /**
  * Created by evi on 6. 1. 2018.
@@ -23,6 +26,7 @@ public class TrashbinDbHelper extends SQLiteOpenHelper {
     private static String DB_PATH;
     private SQLiteDatabase myDataBase;
     private final Context myContext;
+    private Cursor mCursor;
 
     //Constructor
     public TrashbinDbHelper(Context context) {
@@ -143,19 +147,71 @@ public class TrashbinDbHelper extends SQLiteOpenHelper {
         }
     }
 
-    public Cursor selectAllPoints() {
-        Cursor cursor = myContext.getContentResolver().query(TrashbinContract.TrashbinEntry.CONTENT_URI, null, null, null,
-                null);
-        return cursor;
+    public Cursor selectAllPoints() throws ExecutionException, InterruptedException {
+       Cursor c = new FetchAllLocations().execute().get();
+        return c;
     }
 
-    public Cursor selectOneTypePoints(String [] trashTypeIndex) {
-        String selection = TrashbinContract.TrashbinEntry.COLUMN_TRASHTYPE_INDEX + "=?";
-        String [] selArgs = trashTypeIndex;
-        Cursor cursor = myContext.getContentResolver().query(TrashbinContract.TrashbinEntry.CONTENT_URI, null, selection,selArgs,
-                null);
-        return cursor;
+    public Cursor selectOneTypePoints(String[] trashTypeIndex) throws ExecutionException, InterruptedException {
+        Cursor c = new FetchSelectedLocations().execute(trashTypeIndex).get();
+        return c;
     }
+
+
+    public class FetchAllLocations extends AsyncTask<Void, Void, Cursor> {
+
+        // Invoked on a background thread
+        @Override
+        protected Cursor doInBackground(Void... params) {
+            // Make the query to get the data
+
+            // Get the content resolver
+            ContentResolver resolver = myContext.getContentResolver();
+
+            // Call the query method on the resolver with the correct Uri from the contract class
+            Cursor cursor = resolver.query(TrashbinContract.TrashbinEntry.CONTENT_URI, null, null, null,
+                    null);
+
+            return cursor;
+        }
+
+        // Invoked on UI thread
+        @Override
+        protected void onPostExecute(Cursor cursor) {
+            super.onPostExecute(cursor);
+
+            // Set the data for MapActivity
+            mCursor = cursor;
+        }
+    }
+
+
+    public class FetchSelectedLocations extends AsyncTask<String[], Void, Cursor> {
+
+        // Invoked on a background thread
+        @Override
+        protected Cursor doInBackground(String[]... strings) {
+            // Make the query to get the data
+
+            String selection = TrashbinContract.TrashbinEntry.COLUMN_TRASHTYPE_INDEX + "=?";
+            String[] selArgs = strings[0];
+            Cursor cursor = myContext.getContentResolver().query(TrashbinContract.TrashbinEntry.CONTENT_URI, null, selection, selArgs,
+                    null);
+
+            return cursor;
+        }
+
+        // Invoked on UI thread
+        @Override
+        protected void onPostExecute(Cursor cursor) {
+            super.onPostExecute(cursor);
+
+            // Set the data for MapActivity
+            mCursor = cursor;
+        }
+    }
+
+
 }
 
 

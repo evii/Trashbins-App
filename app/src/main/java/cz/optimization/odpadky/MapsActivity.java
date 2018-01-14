@@ -18,6 +18,8 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import java.util.concurrent.ExecutionException;
+
 import cz.optimization.odpadky.data.TrashbinContract;
 import cz.optimization.odpadky.data.TrashbinDbHelper;
 
@@ -114,25 +116,67 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         switch (position) {
             case 0:
-                cursor = dbHelper.selectAllPoints();
+                try {
+                    cursor = dbHelper.selectAllPoints();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
                 break;
             case 1:
-                cursor = dbHelper.selectOneTypePoints(new String [] {"BS"});
+                try {
+                    cursor = dbHelper.selectOneTypePoints(new String [] {"BS"});
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
                 break;
             case 2:
-                cursor = dbHelper.selectOneTypePoints(new String [] {"CS"});
+                try {
+                    cursor = dbHelper.selectOneTypePoints(new String [] {"CS"});
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
                 break;
             case 3:
-                cursor = dbHelper.selectOneTypePoints(new String [] {"K"});
+                try {
+                    cursor = dbHelper.selectOneTypePoints(new String [] {"K"});
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
                 break;
             case 4:
-                cursor = dbHelper.selectOneTypePoints(new String [] {"PL"});
+                try {
+                    cursor = dbHelper.selectOneTypePoints(new String [] {"PL"});
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
                 break;
             case 5:
-                cursor = dbHelper.selectOneTypePoints(new String [] {"PA"});
+                try {
+                    cursor = dbHelper.selectOneTypePoints(new String [] {"PA"});
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
                 break;
             case 6:
-                cursor = dbHelper.selectOneTypePoints(new String [] {"NK"});
+                try {
+                    cursor = dbHelper.selectOneTypePoints(new String [] {"NK"});
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
                 break;
         }
         addPoints(cursor);
