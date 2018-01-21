@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 25
-    buildToolsVersion "25.0.3"
+    buildToolsVersion "26.0.2"
     defaultConfig {
         applicationId "cz.optimization.odpadky"
         minSdkVersion 15
@@ -28,5 +28,6 @@ dependencies {
     compile 'com.android.support:preference-v7:25.3.1'
     compile 'com.google.android.gms:play-services-maps:10.2.6'
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
+    compile 'com.google.maps.android:android-maps-utils:0.5+'
     testCompile 'junit:junit:4.12'
 }
