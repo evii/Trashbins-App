@@ -117,7 +117,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         switch (position) {
             case 0:
-                setTitle("All trashbins");
+                setTitle("Optimization - All trashbins");
                 try {
                     cursor = dbHelper.selectAllPoints();
                 } catch (ExecutionException e) {
@@ -127,7 +127,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }
                 break;
             case 1:
-                setTitle("Colour glass trashbins");
+                setTitle("Optimization - Colour glass trashbins");
                 try {
                     cursor = dbHelper.selectOneTypePoints(new String[]{"BS"});
                 } catch (ExecutionException e) {
@@ -137,7 +137,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }
                 break;
             case 2:
-                setTitle("White glass trashbins");
+                setTitle("Optimization - White glass trashbins");
                 try {
                     cursor = dbHelper.selectOneTypePoints(new String[]{"CS"});
                 } catch (ExecutionException e) {
@@ -147,7 +147,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }
                 break;
             case 3:
-                setTitle("Metal trashbins");
+                setTitle("Optimization - Metal trashbins");
                 try {
                     cursor = dbHelper.selectOneTypePoints(new String[]{"K"});
                 } catch (ExecutionException e) {
@@ -157,7 +157,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }
                 break;
             case 4:
-                setTitle("Plastic trashbins");
+                setTitle("Optimization - Plastic trashbins");
                 try {
                     cursor = dbHelper.selectOneTypePoints(new String[]{"PL"});
                 } catch (ExecutionException e) {
@@ -167,7 +167,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }
                 break;
             case 5:
-                setTitle("Paper trashbins");
+                setTitle("Optimization - Paper trashbins");
                 try {
                     cursor = dbHelper.selectOneTypePoints(new String[]{"PA"});
                 } catch (ExecutionException e) {
@@ -177,7 +177,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }
                 break;
             case 6:
-                setTitle("Carton UHT trashbins");
+                setTitle("Optimization - Carton UHT trashbins");
                 try {
                     cursor = dbHelper.selectOneTypePoints(new String[]{"NK"});
                 } catch (ExecutionException e) {
@@ -197,9 +197,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         double lat = 0;
         double lng = 0;
         double progress = 0;
-        String trashType = "";
-        Float colour = BitmapDescriptorFactory.HUE_ROSE;
+     //   String trashType = "";
+    //    Float colour = BitmapDescriptorFactory.HUE_ROSE;
         String snippet = "";
+
 
         mMap.clear();
         // Number of locations available in the SQLite database table
@@ -208,7 +209,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mClusterManager = new ClusterManager<>(this, mMap);
         mMap.setOnCameraIdleListener(mClusterManager);
         mMap.setOnMarkerClickListener(mClusterManager);
-
+        final CustomClusterRenderer renderer = new CustomClusterRenderer(this, mMap, mClusterManager);
+        mClusterManager.setRenderer(renderer);
         // Move the current record pointer to the first row of the table
         cursor.moveToFirst();
 
@@ -216,15 +218,15 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             lat = cursor.getDouble(cursor.getColumnIndex(TrashbinContract.TrashbinEntry.COLUMN_LAT));
             lng = cursor.getDouble(cursor.getColumnIndex(TrashbinContract.TrashbinEntry.COLUMN_LONG));
-            LatLng location = new LatLng(lat, lng);
 
             address = cursor.getString(cursor.getColumnIndex(TrashbinContract.TrashbinEntry.COLUMN_ADDRESS));
             progress = cursor.getDouble(cursor.getColumnIndex(TrashbinContract.TrashbinEntry.COLUMN_PROGRESS));
             double progressRounded = (double) Math.round(progress * 100) / 100;
             snippet = "Naplněnost: " + (progressRounded * 100) + " %";
-            trashType = cursor.getString(cursor.getColumnIndex(TrashbinContract.TrashbinEntry.COLUMN_TRASHTYPE_INDEX));
 
             // Getting colour of the point
+            /** trashType = cursor.getString(cursor.getColumnIndex(TrashbinContract.TrashbinEntry.COLUMN_TRASHTYPE_INDEX));
+
             switch (trashType) {
                 case "BS":
                     colour = BitmapDescriptorFactory.HUE_GREEN;
@@ -245,7 +247,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     colour = BitmapDescriptorFactory.HUE_YELLOW;
                     break;
             }
-
+*/
             // Drawing the marker in the Google Maps
             mClusterManager.addItem(new TrashbinClusterItem(lat,lng,address,snippet));
 
