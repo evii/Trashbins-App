@@ -20,6 +20,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.maps.android.clustering.ClusterItem;
 import com.google.maps.android.clustering.ClusterManager;
 
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import cz.optimization.odpadky.data.TrashbinContract;
@@ -42,6 +43,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private int previousPosition;
 
     private ClusterManager<TrashbinClusterItem> mClusterManager;
+    private List<TrashbinClusterItem> mListLocations;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -115,11 +117,19 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         dbHelper = new TrashbinDbHelper(this);
         dbHelper.createOpenDb();
 
+        mClusterManager = new ClusterManager<>(this, mMap);
+        mMap.setOnCameraIdleListener(mClusterManager);
+        mMap.setOnMarkerClickListener(mClusterManager);
+        final CustomClusterRenderer renderer = new CustomClusterRenderer(this, mMap, mClusterManager);
+        mClusterManager.setRenderer(renderer);
+
         switch (position) {
             case 0:
                 setTitle("Optimization - All trashbins");
+                mMap.clear();
                 try {
-                    cursor = dbHelper.selectAllPoints();
+                    mListLocations = dbHelper.selectAllPoints();
+                    mClusterManager.addItems(mListLocations);
                 } catch (ExecutionException e) {
                     e.printStackTrace();
                 } catch (InterruptedException e) {
@@ -128,8 +138,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 break;
             case 1:
                 setTitle("Optimization - Colour glass trashbins");
+                mMap.clear();
                 try {
-                    cursor = dbHelper.selectOneTypePoints(new String[]{"BS"});
+                    mListLocations = dbHelper.selectOneTypePoints(new String[]{"BS"});
+                    mClusterManager.addItems(mListLocations);
                 } catch (ExecutionException e) {
                     e.printStackTrace();
                 } catch (InterruptedException e) {
@@ -138,8 +150,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 break;
             case 2:
                 setTitle("Optimization - White glass trashbins");
+                mMap.clear();
                 try {
-                    cursor = dbHelper.selectOneTypePoints(new String[]{"CS"});
+                    mListLocations = dbHelper.selectOneTypePoints(new String[]{"CS"});
+                    mClusterManager.addItems(mListLocations);
                 } catch (ExecutionException e) {
                     e.printStackTrace();
                 } catch (InterruptedException e) {
@@ -148,8 +162,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 break;
             case 3:
                 setTitle("Optimization - Metal trashbins");
+                mMap.clear();
                 try {
-                    cursor = dbHelper.selectOneTypePoints(new String[]{"K"});
+                    mListLocations = dbHelper.selectOneTypePoints(new String[]{"K"});
+                    mClusterManager.addItems(mListLocations);
                 } catch (ExecutionException e) {
                     e.printStackTrace();
                 } catch (InterruptedException e) {
@@ -158,8 +174,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 break;
             case 4:
                 setTitle("Optimization - Plastic trashbins");
+                mMap.clear();
                 try {
-                    cursor = dbHelper.selectOneTypePoints(new String[]{"PL"});
+                    mListLocations = dbHelper.selectOneTypePoints(new String[]{"PL"});
+                    mClusterManager.addItems(mListLocations);
                 } catch (ExecutionException e) {
                     e.printStackTrace();
                 } catch (InterruptedException e) {
@@ -168,8 +186,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 break;
             case 5:
                 setTitle("Optimization - Paper trashbins");
+                mMap.clear();
                 try {
-                    cursor = dbHelper.selectOneTypePoints(new String[]{"PA"});
+                    mListLocations = dbHelper.selectOneTypePoints(new String[]{"PA"});
+                    mClusterManager.addItems(mListLocations);
                 } catch (ExecutionException e) {
                     e.printStackTrace();
                 } catch (InterruptedException e) {
@@ -178,8 +198,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 break;
             case 6:
                 setTitle("Optimization - Carton UHT trashbins");
+                mMap.clear();
                 try {
-                    cursor = dbHelper.selectOneTypePoints(new String[]{"NK"});
+                    mListLocations = dbHelper.selectOneTypePoints(new String[]{"NK"});
+                    mClusterManager.addItems(mListLocations);
                 } catch (ExecutionException e) {
                     e.printStackTrace();
                 } catch (InterruptedException e) {
@@ -187,73 +209,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }
                 break;
         }
-        addPoints(cursor);
-    }
-
-    private void addPoints(Cursor cursor) {
-
-        int locationCount = 0;
-        String address = "";
-        double lat = 0;
-        double lng = 0;
-        double progress = 0;
-     //   String trashType = "";
-    //    Float colour = BitmapDescriptorFactory.HUE_ROSE;
-        String snippet = "";
-
-
-        mMap.clear();
-        // Number of locations available in the SQLite database table
-        locationCount = cursor.getCount();
-
-        mClusterManager = new ClusterManager<>(this, mMap);
-        mMap.setOnCameraIdleListener(mClusterManager);
-        mMap.setOnMarkerClickListener(mClusterManager);
-        final CustomClusterRenderer renderer = new CustomClusterRenderer(this, mMap, mClusterManager);
-        mClusterManager.setRenderer(renderer);
-        // Move the current record pointer to the first row of the table
-        cursor.moveToFirst();
-
-        for (int i = 0; i < locationCount; i++) {
-
-            lat = cursor.getDouble(cursor.getColumnIndex(TrashbinContract.TrashbinEntry.COLUMN_LAT));
-            lng = cursor.getDouble(cursor.getColumnIndex(TrashbinContract.TrashbinEntry.COLUMN_LONG));
-
-            address = cursor.getString(cursor.getColumnIndex(TrashbinContract.TrashbinEntry.COLUMN_ADDRESS));
-            progress = cursor.getDouble(cursor.getColumnIndex(TrashbinContract.TrashbinEntry.COLUMN_PROGRESS));
-            double progressRounded = (double) Math.round(progress * 100) / 100;
-            snippet = "Naplněnost: " + (progressRounded * 100) + " %";
-
-            // Getting colour of the point
-            /** trashType = cursor.getString(cursor.getColumnIndex(TrashbinContract.TrashbinEntry.COLUMN_TRASHTYPE_INDEX));
-
-            switch (trashType) {
-                case "BS":
-                    colour = BitmapDescriptorFactory.HUE_GREEN;
-                    break;
-                case "CS":
-                    colour = BitmapDescriptorFactory.HUE_AZURE;
-                    break;
-                case "K":
-                    colour = BitmapDescriptorFactory.HUE_MAGENTA;
-                    break;
-                case "NK":
-                    colour = BitmapDescriptorFactory.HUE_ORANGE;
-                    break;
-                case "PA":
-                    colour = BitmapDescriptorFactory.HUE_BLUE;
-                    break;
-                case "PL":
-                    colour = BitmapDescriptorFactory.HUE_YELLOW;
-                    break;
-            }
-*/
-            // Drawing the marker in the Google Maps
-            mClusterManager.addItem(new TrashbinClusterItem(lat,lng,address,snippet));
-
-            // Traverse the pointer to the next row
-            cursor.moveToNext();
-        }
         mClusterManager.cluster();
+
     }
-}
+    }
+

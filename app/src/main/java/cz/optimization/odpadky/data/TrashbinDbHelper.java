@@ -7,13 +7,20 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.os.AsyncTask;
 
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.LatLng;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
+
+import cz.optimization.odpadky.TrashbinClusterItem;
 
 /**
  * Created by evi on 6. 1. 2018.
@@ -26,7 +33,8 @@ public class TrashbinDbHelper extends SQLiteOpenHelper {
     private static String DB_PATH;
     private SQLiteDatabase myDataBase;
     private final Context myContext;
-    private Cursor mCursor;
+    private List<TrashbinClusterItem> mListLocations;
+
 
     //Constructor
     public TrashbinDbHelper(Context context) {
@@ -147,23 +155,24 @@ public class TrashbinDbHelper extends SQLiteOpenHelper {
         }
     }
 
-    public Cursor selectAllPoints() throws ExecutionException, InterruptedException {
-        Cursor c = new FetchAllLocations().execute().get();
-        return c;
+    public List<TrashbinClusterItem> selectAllPoints() throws ExecutionException, InterruptedException {
+        mListLocations  = new FetchAllLocations().execute().get();
+        return mListLocations;
     }
 
-    public Cursor selectOneTypePoints(String[] trashTypeIndex) throws ExecutionException, InterruptedException {
-        Cursor c = new FetchSelectedLocations().execute(trashTypeIndex).get();
-        return c;
+    public List<TrashbinClusterItem> selectOneTypePoints(String[] trashTypeIndex) throws ExecutionException, InterruptedException {
+        mListLocations = new FetchSelectedLocations().execute(trashTypeIndex).get();
+        return mListLocations;
     }
 
-
-    public class FetchAllLocations extends AsyncTask<Void, Void, Cursor> {
+    public class FetchAllLocations extends AsyncTask<Void, Void, List> {
 
         // Invoked on a background thread
         @Override
-        protected Cursor doInBackground(Void... params) {
+        protected List<TrashbinClusterItem> doInBackground(Void... params) {
             // Make the query to get the data
+
+            List<TrashbinClusterItem> itemsList = new ArrayList<>();
 
             // Get the content resolver
             ContentResolver resolver = myContext.getContentResolver();
@@ -172,42 +181,107 @@ public class TrashbinDbHelper extends SQLiteOpenHelper {
             Cursor cursor = resolver.query(TrashbinContract.TrashbinEntry.CONTENT_URI, null, null, null,
                     null);
 
-            return cursor;
+            if (cursor != null) {
+
+                itemsList = addPoints(cursor);
+            }
+
+            return itemsList;
         }
 
         // Invoked on UI thread
         @Override
-        protected void onPostExecute(Cursor cursor) {
-            super.onPostExecute(cursor);
-
-            // Set the data for MapActivity
-            mCursor = cursor;
+        protected void onPostExecute(List list) {
+            super.onPostExecute(list);
         }
     }
 
+    private List<TrashbinClusterItem> addPoints(Cursor cursor) {
 
-    public class FetchSelectedLocations extends AsyncTask<String[], Void, Cursor> {
+        List<TrashbinClusterItem> ListItems = new ArrayList<>();
+
+        int locationCount = 0;
+        String address = "";
+        double lat = 0;
+        double lng = 0;
+        double progress = 0;
+        //   String trashType = "";
+        //    Float colour = BitmapDescriptorFactory.HUE_ROSE;
+        String snippet = "";
+
+        // Number of locations available in the SQLite database table
+        locationCount = cursor.getCount();
+
+        // Move the current record pointer to the first row of the table
+        cursor.moveToFirst();
+
+        for (int i = 0; i < locationCount; i++) {
+
+            lat = cursor.getDouble(cursor.getColumnIndex(TrashbinContract.TrashbinEntry.COLUMN_LAT));
+            lng = cursor.getDouble(cursor.getColumnIndex(TrashbinContract.TrashbinEntry.COLUMN_LONG));
+
+            address = cursor.getString(cursor.getColumnIndex(TrashbinContract.TrashbinEntry.COLUMN_ADDRESS));
+            progress = cursor.getDouble(cursor.getColumnIndex(TrashbinContract.TrashbinEntry.COLUMN_PROGRESS));
+            double progressRounded = (double) Math.round(progress * 100) / 100;
+            snippet = "Naplněnost: " + (progressRounded * 100) + " %";
+
+            // Getting colour of the point
+            /** trashType = cursor.getString(cursor.getColumnIndex(TrashbinContract.TrashbinEntry.COLUMN_TRASHTYPE_INDEX));
+
+             switch (trashType) {
+             case "BS":
+             colour = BitmapDescriptorFactory.HUE_GREEN;
+             break;
+             case "CS":
+             colour = BitmapDescriptorFactory.HUE_AZURE;
+             break;
+             case "K":
+             colour = BitmapDescriptorFactory.HUE_MAGENTA;
+             break;
+             case "NK":
+             colour = BitmapDescriptorFactory.HUE_ORANGE;
+             break;
+             case "PA":
+             colour = BitmapDescriptorFactory.HUE_BLUE;
+             break;
+             case "PL":
+             colour = BitmapDescriptorFactory.HUE_YELLOW;
+             break;
+             }
+             */
+
+            // Adding the marker to the List
+            ListItems.add(new TrashbinClusterItem(lat, lng, address, snippet));
+
+            // Traverse the pointer to the next row
+            cursor.moveToNext();
+        }
+
+        cursor.close();
+        return ListItems;
+    }
+
+    public class FetchSelectedLocations extends AsyncTask<String[], Void, List<TrashbinClusterItem>> {
 
         // Invoked on a background thread
         @Override
-        protected Cursor doInBackground(String[]... strings) {
+        protected List<TrashbinClusterItem> doInBackground(String[]... strings) {
             // Make the query to get the data
+            List<TrashbinClusterItem> itemsList = new ArrayList<>();
 
             String selection = TrashbinContract.TrashbinEntry.COLUMN_TRASHTYPE_INDEX + "=?";
             String[] selArgs = strings[0];
             Cursor cursor = myContext.getContentResolver().query(TrashbinContract.TrashbinEntry.CONTENT_URI, null, selection, selArgs,
                     null);
 
-            return cursor;
+            itemsList = addPoints(cursor);
+            return itemsList;
         }
 
         // Invoked on UI thread
         @Override
-        protected void onPostExecute(Cursor cursor) {
-            super.onPostExecute(cursor);
-
-            // Set the data for MapActivity
-            mCursor = cursor;
+        protected void onPostExecute(List list) {
+            super.onPostExecute(list);
         }
     }
 }
