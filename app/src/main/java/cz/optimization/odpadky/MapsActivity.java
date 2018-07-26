@@ -5,9 +5,11 @@ import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -23,8 +25,13 @@ import com.google.maps.android.clustering.ClusterManager;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
+import cz.optimization.odpadky.data.APIClient;
+import cz.optimization.odpadky.data.GetDataService;
 import cz.optimization.odpadky.data.TrashbinContract;
 import cz.optimization.odpadky.data.TrashbinDbHelper;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 import static java.lang.Math.round;
 
@@ -37,7 +44,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private int position = 0;
 
     TrashbinDbHelper dbHelper;
-    Cursor cursor;
 
     private static final String POSITION_KEY = "position";
     private int previousPosition;
@@ -114,8 +120,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onPositiveClick(int position) {
         this.position = position;
-        dbHelper = new TrashbinDbHelper(this);
-        dbHelper.createOpenDb();
+      /*  dbHelper = new TrashbinDbHelper(this);
+        dbHelper.createOpenDb();*/
 
         mClusterManager = new ClusterManager<>(this, mMap);
         mMap.setOnCameraIdleListener(mClusterManager);
@@ -127,90 +133,109 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             case 0:
                 setTitle("Optimization - All trashbins");
                 mMap.clear();
-                try {
-                    mListLocations = dbHelper.selectAllPoints();
+                    mListLocations = fetchPlaces();
                     mClusterManager.addItems(mListLocations);
-                } catch (ExecutionException e) {
-                    e.printStackTrace();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+
                 break;
             case 1:
                 setTitle("Optimization - Colour glass trashbins");
                 mMap.clear();
-                try {
+               /* try {
                     mListLocations = dbHelper.selectOneTypePoints(new String[]{"BS"});
                     mClusterManager.addItems(mListLocations);
                 } catch (ExecutionException e) {
                     e.printStackTrace();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
-                }
+                }*/
                 break;
             case 2:
                 setTitle("Optimization - White glass trashbins");
                 mMap.clear();
-                try {
+                /*try {
                     mListLocations = dbHelper.selectOneTypePoints(new String[]{"CS"});
                     mClusterManager.addItems(mListLocations);
                 } catch (ExecutionException e) {
                     e.printStackTrace();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
-                }
+                }*/
                 break;
             case 3:
                 setTitle("Optimization - Metal trashbins");
                 mMap.clear();
-                try {
+                /*try {
                     mListLocations = dbHelper.selectOneTypePoints(new String[]{"K"});
                     mClusterManager.addItems(mListLocations);
                 } catch (ExecutionException e) {
                     e.printStackTrace();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
-                }
+                }*/
                 break;
             case 4:
                 setTitle("Optimization - Plastic trashbins");
                 mMap.clear();
-                try {
+                /*try {
                     mListLocations = dbHelper.selectOneTypePoints(new String[]{"PL"});
                     mClusterManager.addItems(mListLocations);
                 } catch (ExecutionException e) {
                     e.printStackTrace();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
-                }
+                }*/
                 break;
             case 5:
                 setTitle("Optimization - Paper trashbins");
                 mMap.clear();
-                try {
+               /* try {
                     mListLocations = dbHelper.selectOneTypePoints(new String[]{"PA"});
                     mClusterManager.addItems(mListLocations);
                 } catch (ExecutionException e) {
                     e.printStackTrace();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
-                }
+                }*/
                 break;
             case 6:
                 setTitle("Optimization - Carton UHT trashbins");
                 mMap.clear();
-                try {
+               /* try {
                     mListLocations = dbHelper.selectOneTypePoints(new String[]{"NK"});
                     mClusterManager.addItems(mListLocations);
                 } catch (ExecutionException e) {
                     e.printStackTrace();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
-                }
+                }*/
                 break;
         }
         mClusterManager.cluster();
 
     }
+
+    private List<TrashbinClusterItem> fetchPlaces(){
+
+        GetDataService service = APIClient.getClient().create(GetDataService.class);
+        Call<List<TrashbinClusterItem>> call = service.getAllPlaces();
+        call.enqueue(new Callback<List<TrashbinClusterItem>>() {
+            @Override
+            public void onResponse(Call<List<TrashbinClusterItem>> call, Response<List<TrashbinClusterItem>> response) {
+
+                mListLocations = response.body();
+            }
+
+            @Override
+            public void onFailure(Call<List<TrashbinClusterItem>> call, Throwable t) {
+
+                Toast.makeText(MapsActivity.this, "Something went wrong...Please try later!", Toast.LENGTH_SHORT).show();
+            }
+        });
+        Log.v("Retrofit_fetch",String.valueOf(mListLocations.size()));
+        return mListLocations;
     }
+    }
+
+
+
 

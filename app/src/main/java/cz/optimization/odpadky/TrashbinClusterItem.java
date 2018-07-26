@@ -1,6 +1,7 @@
 package cz.optimization.odpadky;
 
 import com.google.android.gms.maps.model.LatLng;
+import com.google.gson.annotations.SerializedName;
 import com.google.maps.android.clustering.ClusterItem;
 
 /**
@@ -8,29 +9,65 @@ import com.google.maps.android.clustering.ClusterItem;
  */
 
 public class TrashbinClusterItem implements ClusterItem {
-        private final String mTitle;
-        private final LatLng mPosition;
-        private final String mSnippet;
 
-        public TrashbinClusterItem(double lat, double lng, String title, String snippet) {
-            mPosition = new LatLng(lat, lng);
-            mTitle = title;
-            mSnippet = snippet;
-        }
+    @SerializedName("id")
+    private final String mPlaceId;
 
-        @Override
-        public LatLng getPosition() {
-            return mPosition;
-        }
+    @SerializedName("title")
+    private final String mTitle;
 
-        @Override
-        public String getTitle() {
-            return mTitle;
-        }
+    @SerializedName("latitude")
+    private final double mLatitude;
 
-        @Override
-        public String getSnippet() {
-            return mSnippet;
-        }
+    @SerializedName("longitude")
+    private final double mLongitude;
+
+    @SerializedName("containers_count")
+    private final int mContainersCount;
+
+    private LatLng mPosition;
+
+    public TrashbinClusterItem(String placeId, String title, double lat, double lng, int containersCount) {
+
+        mPlaceId=placeId;
+        mTitle = title;
+        mLatitude=lat;
+        mLongitude=lng;
+        mContainersCount=containersCount;
+
+        mPosition = new LatLng(lat, lng);
+  }
+
+    @Override
+    public LatLng getPosition() {
+        return mPosition;
     }
+
+    @Override
+    public String getTitle() {
+        return mTitle;
+    }
+
+    @Override
+    public String getSnippet() {
+        return mPlaceId;
+    }
+
+    public String getPlaceId() {
+        return mPlaceId;
+    }
+
+    public double getLatitude() {
+        return mLatitude;
+    }
+
+    public double getLongitude() {
+        return mLongitude;
+    }
+
+    public int getContainersCount() {
+        return mContainersCount;
+    }
+
+}
 

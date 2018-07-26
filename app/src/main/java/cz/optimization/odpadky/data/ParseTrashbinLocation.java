@@ -13,6 +13,8 @@ import cz.optimization.odpadky.TrashbinClusterItem;
 
 public class ParseTrashbinLocation {
 
+    // method that takes in a Cursor and returns List of all locations as ClusterItems
+
     public static List getTrashbinLocation(Cursor cursor){
         List<TrashbinClusterItem> ListItems = new ArrayList<>();
 
@@ -67,7 +69,7 @@ public class ParseTrashbinLocation {
              */
 
             // Adding the marker to the List
-            ListItems.add(new TrashbinClusterItem(lat, lng, address, snippet));
+           // ListItems.add(new TrashbinClusterItem(lat, lng, address, snippet));
 
             // Traverse the pointer to the next row
             cursor.moveToNext();
