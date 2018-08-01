@@ -9,5 +9,5 @@ import retrofit2.http.GET;
 public interface GetDataService {
 
     @GET("places")
-    Call<List<TrashbinClusterItem>> getAllPlaces();
+    Call<List<Place>> getAllPlaces();
 }

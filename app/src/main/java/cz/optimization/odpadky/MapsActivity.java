@@ -27,6 +27,7 @@ import java.util.concurrent.ExecutionException;
 
 import cz.optimization.odpadky.data.APIClient;
 import cz.optimization.odpadky.data.GetDataService;
+import cz.optimization.odpadky.data.Place;
 import cz.optimization.odpadky.data.TrashbinContract;
 import cz.optimization.odpadky.data.TrashbinDbHelper;
 import retrofit2.Call;
@@ -50,6 +51,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private ClusterManager<TrashbinClusterItem> mClusterManager;
     private List<TrashbinClusterItem> mListLocations;
+    private List<Place> mListPlaces;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -133,9 +135,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             case 0:
                 setTitle("Optimization - All trashbins");
                 mMap.clear();
-                    mListLocations = fetchPlaces();
+                fetchPlaces();
+                    /*mListLocations = fetchPlaces();
                     mClusterManager.addItems(mListLocations);
-
+*/
                 break;
             case 1:
                 setTitle("Optimization - Colour glass trashbins");
@@ -214,25 +217,26 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     }
 
-    private List<TrashbinClusterItem> fetchPlaces(){
+    private List<Place> fetchPlaces(){
+
 
         GetDataService service = APIClient.getClient().create(GetDataService.class);
-        Call<List<TrashbinClusterItem>> call = service.getAllPlaces();
-        call.enqueue(new Callback<List<TrashbinClusterItem>>() {
+        Call<List<Place>> call = service.getAllPlaces();
+        call.enqueue(new Callback<List<Place>>() {
             @Override
-            public void onResponse(Call<List<TrashbinClusterItem>> call, Response<List<TrashbinClusterItem>> response) {
+            public void onResponse(Call<List<Place>> call, Response<List<Place>> response) {
 
-                mListLocations = response.body();
+                mListPlaces = response.body();
             }
 
             @Override
-            public void onFailure(Call<List<TrashbinClusterItem>> call, Throwable t) {
+            public void onFailure(Call<List<Place>> call, Throwable t) {
 
                 Toast.makeText(MapsActivity.this, "Something went wrong...Please try later!", Toast.LENGTH_SHORT).show();
             }
         });
         Log.v("Retrofit_fetch",String.valueOf(mListLocations.size()));
-        return mListLocations;
+        return mListPlaces;
     }
     }
 
