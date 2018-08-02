@@ -1,4 +1,4 @@
-package cz.optimization.odpadky;
+package cz.optimization.odpadky.ui.clusters;
 
 import com.google.android.gms.maps.model.LatLng;
 import com.google.gson.annotations.SerializedName;

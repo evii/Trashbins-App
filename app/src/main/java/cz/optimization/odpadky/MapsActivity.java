@@ -1,11 +1,10 @@
 package cz.optimization.odpadky;
 
 
-import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -19,18 +18,19 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.maps.android.clustering.ClusterItem;
+import com.google.maps.android.clustering.Cluster;
 import com.google.maps.android.clustering.ClusterManager;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 
-import cz.optimization.odpadky.data.APIClient;
-import cz.optimization.odpadky.data.GetDataService;
-import cz.optimization.odpadky.data.Place;
-import cz.optimization.odpadky.data.TrashbinContract;
-import cz.optimization.odpadky.data.TrashbinDbHelper;
+import cz.optimization.odpadky.retrofit_data.APIClient;
+import cz.optimization.odpadky.retrofit_data.GetDataService;
+import cz.optimization.odpadky.objects.Place;
+import cz.optimization.odpadky.del.TrashbinDbHelper;
+import cz.optimization.odpadky.ui.clusters.CustomClusterRenderer;
+import cz.optimization.odpadky.ui.clusters.TrashbinClusterItem;
+import cz.optimization.odpadky.ui.info_window.CustomInfoWindow;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -116,16 +116,16 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
         onPositiveClick(previousPosition);
-        float zoomLevel = 12.5f; //This goes up to 21
+        float zoomLevel = 15.5f; //This goes up to 21
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(50.0889853530001, 14.4723441130001), zoomLevel));
+        mClusterManager.getMarkerCollection()
+                .setOnInfoWindowAdapter(new CustomInfoWindow(LayoutInflater.from(this)));
 
     }
 
     @Override
     public void onPositiveClick(int position) {
         this.position = position;
-      /*  dbHelper = new TrashbinDbHelper(this);
-        dbHelper.createOpenDb();*/
 
         mClusterManager = new ClusterManager<>(this, mMap);
         mMap.setOnCameraIdleListener(mClusterManager);
@@ -219,8 +219,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     }
 
-    private void fetchPlaces(){
 
+    // helper method to get the places from the API - using retrofit
+    private void fetchPlaces() {
 
         GetDataService service = APIClient.getClient().create(GetDataService.class);
         Call<List<Place>> call = service.getAllPlaces();
@@ -228,21 +229,50 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public void onResponse(Call<List<Place>> call, Response<List<Place>> response) {
 
-
                 mListPlaces = response.body();
                 mClusterManager.addItems(getPlaceLocation(mListPlaces));
+                mClusterManager.cluster();
+
+                // onclick listener for cluster
+                mClusterManager.setOnClusterClickListener(
+                        new ClusterManager.OnClusterClickListener<TrashbinClusterItem>() {
+                            @Override public boolean onClusterClick(Cluster<TrashbinClusterItem> cluster) {
+
+                                Toast.makeText(MapsActivity.this, R.string.Cluster_click, Toast.LENGTH_SHORT).show();
+                                return false;
+                            }
+                        });
+
+                // onclicklistener for marker
+                mClusterManager.setOnClusterItemClickListener(
+                        new ClusterManager.OnClusterItemClickListener<TrashbinClusterItem>() {
+                            @Override public boolean onClusterItemClick(TrashbinClusterItem clusterItem) {
+
+
+
+                                mMap.setInfoWindowAdapter(mClusterManager.getMarkerManager());
+
+                               // Toast.makeText(MapsActivity.this, "Cluster item click", Toast.LENGTH_SHORT).show();
+
+                                // if true, click handling stops here and do not show info view, do not move camera
+                                // you can avoid this by calling:
+                                // renderer.getMarker(clusterItem).showInfoWindow();
+
+                                return false;
+                            }
+                        });
+
             }
 
             @Override
             public void onFailure(Call<List<Place>> call, Throwable t) {
 
-                Toast.makeText(MapsActivity.this, "Something went wrong...Please try later!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(MapsActivity.this, R.string.No_internet_connection, Toast.LENGTH_LONG).show();
             }
         });
-
     }
 
-
+    // helper method to transfer the List of places into the cluster items
     private List<TrashbinClusterItem> getPlaceLocation(List<Place> places) {
         List<TrashbinClusterItem> ListItems = new ArrayList<>();
 
@@ -251,28 +281,27 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         double lat = 0;
         double lng = 0;
         String snippet = "";
+        String placeId = "";
 
-
-
-       for (int i = 0; i < locationCount; i++) {
-           Place place = places.get(i);
+        for (int i = 0; i < locationCount; i++) {
+            Place place = places.get(i);
 
             lat = place.getLatitude();
             lng = place.getLongitude();
             address = place.getTitle();
-            snippet = "Ukazat, co tam je za typy";
+            placeId = place.getPlaceId();
+            snippet = "Pocet containeru " + String.valueOf(place.getContainersCount()) + "Ukazat, co tam je za typy";
 
             // Adding the marker to the List
             ListItems.add(new TrashbinClusterItem(lat, lng, address, snippet));
         }
-
         return ListItems;
-
     }
 
+    // helper method to get details of containers in a place
 
 
-    }
+}
 
 
 

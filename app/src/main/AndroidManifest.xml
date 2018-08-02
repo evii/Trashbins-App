@@ -43,7 +43,7 @@
         </activity>
 
         <provider
-            android:name="cz.optimization.odpadky.data.TrashbinContentProvider"
+            android:name="cz.optimization.odpadky.del.TrashbinContentProvider"
             android:authorities="cz.optimization.odpadky"
             android:exported="false"/>
 

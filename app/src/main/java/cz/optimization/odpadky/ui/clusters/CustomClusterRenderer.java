@@ -1,4 +1,4 @@
-package cz.optimization.odpadky;
+package cz.optimization.odpadky.ui.clusters;
 
 import android.content.Context;
 

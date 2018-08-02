@@ -3,6 +3,9 @@
     <string name="title_activity_maps">Map</string>
     <string name="google_maps_key">AIzaSyDiB4tWgjXTjiNKfjC6uuPlsmB3uBy6mzM</string>
 
+    <string name="No_internet_connection">"There is no internet connection, please try again later"</string>
+    <string name="Cluster_click">"To get information on containers at this place, please zoom-in and click on marker."</string>
+
     <string name="filter_litter_colour_glass_label">Colour glass</string>
     <string name="filter_litter_white_glass_label">White glass</string>
     <string name="filter_litter_metal_label">Metal</string>
