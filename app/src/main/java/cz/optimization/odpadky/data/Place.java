@@ -31,7 +31,7 @@ public class Place {
         return mPlaceId;
     }
 
-    public String getmTitle() {
+    public String getTitle() {
         return mTitle;
     }
 

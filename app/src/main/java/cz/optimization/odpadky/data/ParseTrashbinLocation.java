@@ -69,7 +69,7 @@ public class ParseTrashbinLocation {
              */
 
             // Adding the marker to the List
-           // ListItems.add(new TrashbinClusterItem(lat, lng, address, snippet));
+            ListItems.add(new TrashbinClusterItem(lat, lng, address, snippet));
 
             // Traverse the pointer to the next row
             cursor.moveToNext();

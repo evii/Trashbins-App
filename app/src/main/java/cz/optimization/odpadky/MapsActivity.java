@@ -22,6 +22,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.maps.android.clustering.ClusterItem;
 import com.google.maps.android.clustering.ClusterManager;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -115,8 +116,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
         onPositiveClick(previousPosition);
-        float zoomLevel = 15.5f; //This goes up to 21
+        float zoomLevel = 12.5f; //This goes up to 21
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(50.0889853530001, 14.4723441130001), zoomLevel));
+
     }
 
     @Override
@@ -217,7 +219,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     }
 
-    private List<Place> fetchPlaces(){
+    private void fetchPlaces(){
 
 
         GetDataService service = APIClient.getClient().create(GetDataService.class);
@@ -226,7 +228,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public void onResponse(Call<List<Place>> call, Response<List<Place>> response) {
 
+
                 mListPlaces = response.body();
+                mClusterManager.addItems(getPlaceLocation(mListPlaces));
             }
 
             @Override
@@ -235,9 +239,39 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 Toast.makeText(MapsActivity.this, "Something went wrong...Please try later!", Toast.LENGTH_SHORT).show();
             }
         });
-        Log.v("Retrofit_fetch",String.valueOf(mListLocations.size()));
-        return mListPlaces;
+
     }
+
+
+    private List<TrashbinClusterItem> getPlaceLocation(List<Place> places) {
+        List<TrashbinClusterItem> ListItems = new ArrayList<>();
+
+        int locationCount = places.size();
+        String address = "";
+        double lat = 0;
+        double lng = 0;
+        String snippet = "";
+
+
+
+       for (int i = 0; i < locationCount; i++) {
+           Place place = places.get(i);
+
+            lat = place.getLatitude();
+            lng = place.getLongitude();
+            address = place.getTitle();
+            snippet = "Ukazat, co tam je za typy";
+
+            // Adding the marker to the List
+            ListItems.add(new TrashbinClusterItem(lat, lng, address, snippet));
+        }
+
+        return ListItems;
+
+    }
+
+
+
     }
 
 
