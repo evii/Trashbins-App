@@ -6,12 +6,30 @@
     <string name="No_internet_connection">"There is no internet connection, please try again later"</string>
     <string name="Cluster_click">"To get information on containers at this place, please zoom-in and click on marker."</string>
 
-    <string name="filter_litter_colour_glass_label">Colour glass</string>
-    <string name="filter_litter_white_glass_label">White glass</string>
+    <string name="glass">glass</string>
+    <string name="clear_glass">clear_glass</string>
+    <string name="metal">metal</string>
+    <string name="plastic">plastic</string>
+    <string name="paper">paper</string>
+    <string name="carton">carton</string>
+    <string name="electrical">electrical</string>
+
+    <string name="all_title">Optimization - All containers</string>
+    <string name="glass_title">Optimization - containers for glass</string>
+    <string name="clear_glass_title">Optimization - containers for clear glass</string>
+    <string name="metal_title">Optimization - containers for metal</string>
+    <string name="plastic_title">Optimization - containers for plastic</string>
+    <string name="paper_title">Optimization - containers for paper</string>
+    <string name="carton_title">Optimization - containers for carton</string>
+    <string name="electrical_title">Optimization - containers for electrical</string>
+
+    <string name="filter_litter_colour_glass_label">Glass</string>
+    <string name="filter_litter_white_glass_label">Clear glass</string>
     <string name="filter_litter_metal_label">Metal</string>
     <string name="filter_litter_plastic_label">Plastic</string>
     <string name="filter_litter_paper_label">Paper</string>
     <string name="filter_litter_carton_label">Carton UHT</string>
+    <string name="filter_litter_electrical_label">Electrical</string>
     <string name="filter_litter_all_label">All</string>
 
     <string name="filter_litter_colour_glass">colour_glass</string>
@@ -20,6 +38,7 @@
     <string name="filter_litter_plastic">plastic</string>
     <string name="filter_litter_paper">paper</string>
     <string name="filter_litter_carton">carton</string>
+    <string name="filter_litter_electrical">electrical</string>
     <string name="filter_litter_all">all</string>
 
     <string name="filter_litter_key">filter_litter</string>

@@ -7,6 +7,7 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
+import android.util.ArrayMap;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -26,6 +27,7 @@ import com.google.gson.Gson;
 import com.google.maps.android.clustering.Cluster;
 import com.google.maps.android.clustering.ClusterManager;
 
+import java.security.Key;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,7 +46,8 @@ import retrofit2.Response;
 
 import static java.lang.Math.round;
 
-// TODO po otevreni - upravit lokaci dle aktualni polohy
+// TODO
+
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback,
         SelectTrashbinDialogFragment.AlertPositiveListener, GoogleMap.OnInfoWindowClickListener {
@@ -72,7 +75,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
 
-        sharedPreferences = getSharedPreferences(PREFS_NAME,MODE_PRIVATE);
+        sharedPreferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -153,85 +156,56 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         switch (position) {
             case 0:
-                setTitle("Optimization - All trashbins");
+                setTitle(R.string.all_title);
                 mMap.clear();
                 fetchPlaces();
-                    /*mListLocations = fetchPlaces();
-                    mClusterManager.addItems(mListLocations);
-*/
+
+
                 break;
             case 1:
-                setTitle("Optimization - Colour glass trashbins");
+                setTitle(R.string.glass_title);
                 mMap.clear();
-               /* try {
-                    mListLocations = dbHelper.selectOneTypePoints(new String[]{"BS"});
-                    mClusterManager.addItems(mListLocations);
-                } catch (ExecutionException e) {
-                    e.printStackTrace();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }*/
+                fetchContainersType(getResources().getString(R.string.glass));
+
                 break;
             case 2:
-                setTitle("Optimization - White glass trashbins");
+                setTitle(R.string.clear_glass_title);
                 mMap.clear();
-                /*try {
-                    mListLocations = dbHelper.selectOneTypePoints(new String[]{"CS"});
-                    mClusterManager.addItems(mListLocations);
-                } catch (ExecutionException e) {
-                    e.printStackTrace();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }*/
+                fetchContainersType(getResources().getString(R.string.clear_glass));
+
                 break;
             case 3:
-                setTitle("Optimization - Metal trashbins");
+                setTitle(R.string.metal_title);
                 mMap.clear();
-                /*try {
-                    mListLocations = dbHelper.selectOneTypePoints(new String[]{"K"});
-                    mClusterManager.addItems(mListLocations);
-                } catch (ExecutionException e) {
-                    e.printStackTrace();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }*/
+                fetchContainersType(getResources().getString(R.string.metal));
+
                 break;
             case 4:
-                setTitle("Optimization - Plastic trashbins");
+                setTitle(R.string.plastic_title);
                 mMap.clear();
-                /*try {
-                    mListLocations = dbHelper.selectOneTypePoints(new String[]{"PL"});
-                    mClusterManager.addItems(mListLocations);
-                } catch (ExecutionException e) {
-                    e.printStackTrace();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }*/
+                fetchContainersType(getResources().getString(R.string.plastic));
+
                 break;
             case 5:
-                setTitle("Optimization - Paper trashbins");
+                setTitle(R.string.paper_title);
                 mMap.clear();
-               /* try {
-                    mListLocations = dbHelper.selectOneTypePoints(new String[]{"PA"});
-                    mClusterManager.addItems(mListLocations);
-                } catch (ExecutionException e) {
-                    e.printStackTrace();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }*/
+                fetchContainersType(getResources().getString(R.string.paper));
+
                 break;
             case 6:
-                setTitle("Optimization - Carton UHT trashbins");
+                setTitle(R.string.carton_title);
                 mMap.clear();
-               /* try {
-                    mListLocations = dbHelper.selectOneTypePoints(new String[]{"NK"});
-                    mClusterManager.addItems(mListLocations);
-                } catch (ExecutionException e) {
-                    e.printStackTrace();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }*/
+                fetchContainersType(getResources().getString(R.string.carton));
+
                 break;
+
+            case 7:
+                setTitle(R.string.electrical_title);
+                mMap.clear();
+                fetchContainersType(getResources().getString(R.string.electrical));
+
+                break;
+
         }
         mClusterManager.cluster();
 
@@ -248,8 +222,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         startActivity(intent);
 
 
-       // Toast.makeText(this, "Info window clicked",
-         //       Toast.LENGTH_SHORT).show();
+        // Toast.makeText(this, "Info window clicked",
+        //       Toast.LENGTH_SHORT).show();
     }
 
     // helper method to get the places from the API - using retrofit + seting onclicklisteners on markers
@@ -285,7 +259,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                                 mMap.setInfoWindowAdapter(mClusterManager.getMarkerManager());
 
-                               //get marker from clusterItem
+                                //get marker from clusterItem
 
                                 String placeId = clusterItem.getSnippet();
                                 Log.v("JsonParseMAPS", placeId);
@@ -294,13 +268,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                                 fetchContainersAtPlace(placeId);
 
                                 // get Containers details from shared preferences
-                                String containersList="";
+                                String containersList = "";
                                 SharedPreferences sharedpreferences = getSharedPreferences(PREFS_NAME,
                                         Context.MODE_PRIVATE);
                                 if (sharedpreferences.contains(PREFS_KEY)) {
                                     containersList = sharedpreferences.getString(PREFS_KEY, "");
-                                                                    }
-                                else{
+                                } else {
                                     Log.d("MapsActivity", "List of containers not available");
                                 }
 
@@ -313,11 +286,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                                 marker.setTag(containersList);
                                 marker.setTitle(containersList);
 
-
                                 return false;
                             }
                         });
-
             }
 
             @Override
@@ -378,6 +349,84 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 Toast.makeText(MapsActivity.this, R.string.No_internet_connection, Toast.LENGTH_LONG).show();
             }
         });
+    }
+
+    private void fetchContainersType(final String trashTypeSelected) {
+
+        GetDataService service = APIClient.getClient().create(GetDataService.class);
+        Call<List<Container>> call = service.getContainersTypes();
+        call.enqueue(new Callback<List<Container>>() {
+            @Override
+            public void onResponse(Call<List<Container>> call, Response<List<Container>> response) {
+
+                List<Container> allContainersList = response.body();
+                Log.v("containRetro allCont: ", String.valueOf(allContainersList.size()));
+
+                //covert list of places with coordinates into array map
+                ArrayMap<String, Place> allPlacesMap = new ArrayMap<String, Place>();
+                for (Place place : mListPlaces) {
+                    allPlacesMap.put(place.getPlaceId(), place);
+                }
+                Log.v("containRetro mListP: ", String.valueOf(mListPlaces.size()));
+
+
+                // create new containers list with coordinates
+                List<Container> containerCoordinatesList = new ArrayList<Container>();
+                String trashType = "";
+                for (Container container : allContainersList) {
+                    trashType = container.getTrashType();
+
+                    if (trashType.equals(trashTypeSelected)) {
+
+                        String placeId = container.getPlaceId();
+                        Place selectedPlace = allPlacesMap.get(placeId);
+                        double lat = selectedPlace.getLatitude();
+                        double lng = selectedPlace.getLongitude();
+
+                        int binId = container.getBinId();
+                        String underground = container.getUnderground();
+                        String cleaning = container.getCleaning();
+                        int progress = container.getProgress();
+
+                        Container containerCoordinates = new Container(placeId, trashType, binId, underground, cleaning, progress, lat, lng);
+                        containerCoordinatesList.add(containerCoordinates);
+                    }
+                }
+
+                mClusterManager.addItems(getContainersLocation(containerCoordinatesList));
+                mClusterManager.cluster();
+            }
+
+            @Override
+            public void onFailure(Call<List<Container>> call, Throwable t) {
+
+                Toast.makeText(MapsActivity.this, R.string.No_internet_connection, Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
+
+    private List<TrashbinClusterItem> getContainersLocation(List<Container> containers) {
+        List<TrashbinClusterItem> ListItems = new ArrayList<>();
+
+        int locationCount = containers.size();
+        String trashType = "";
+        double lat = 0;
+        double lng = 0;
+        String progress = "";
+
+        for (int i = 0; i < locationCount; i++) {
+            Container container = containers.get(i);
+
+            lat = container.getLatitude();
+            lng = container.getLongitude();
+            trashType = container.getTrashType();
+            progress = String.valueOf(container.getProgress());
+
+            // Adding the marker to the List
+            ListItems.add(new TrashbinClusterItem(lat, lng, trashType, progress));
+        }
+        return ListItems;
     }
 
 

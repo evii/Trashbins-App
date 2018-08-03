@@ -46,6 +46,14 @@
             android:authorities="cz.optimization.odpadky"
             android:exported="false" />
 
+        <receiver android:name="cz.optimization.odpadky.ui.TrashbinAppWidgetProvider" >
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider"
+                android:resource="@xml/trashbin_appwidget_info" />
+        </receiver>
+
         <activity android:name=".ui.DetailActivity"></activity>
     </application>
 

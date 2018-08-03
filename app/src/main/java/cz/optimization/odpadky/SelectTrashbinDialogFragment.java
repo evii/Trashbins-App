@@ -61,8 +61,9 @@ public class SelectTrashbinDialogFragment extends DialogFragment {
                 getText(R.string.filter_litter_metal_label).toString(),
                 getText(R.string.filter_litter_plastic_label).toString(),
                 getText(R.string.filter_litter_paper_label).toString(),
-                getText(R.string.filter_litter_carton_label).toString()
-        };
+                getText(R.string.filter_litter_carton_label).toString(),
+                getText(R.string.filter_litter_electrical_label).toString() };
+
         builder.setSingleChoiceItems(trashBins, position, null);
 
         // add OK and Cancel buttons

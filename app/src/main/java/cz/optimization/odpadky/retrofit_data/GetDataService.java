@@ -1,5 +1,7 @@
 package cz.optimization.odpadky.retrofit_data;
 
+import android.util.ArrayMap;
+
 import java.util.List;
 
 import cz.optimization.odpadky.objects.Container;
@@ -15,5 +17,8 @@ public interface GetDataService {
 
     @GET("places/{place_id}")
     Call<Container.ContainersResult> getContainersList(@Path("place_id") String placeId);
+
+    @GET("containers")
+    Call<List<Container>> getContainersTypes();
 
 }

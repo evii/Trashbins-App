@@ -36,6 +36,11 @@ public class Container {
     @SerializedName("demo_progress")
     private final int mProgress;
 
+    private double mLatitude;
+    private double mLongitude;
+
+
+
     public Container(String placeId, String trashType, int binId, String underground, String cleaning, int progress) {
         mPlaceId = placeId;
         mTrashType = trashType;
@@ -43,6 +48,18 @@ public class Container {
         mUnderground = underground;
         mCleaning = cleaning;
         mProgress = progress;
+    }
+
+    public Container(String placeId, String trashType, int binId, String underground, String cleaning, int progress, double lat, double lng) {
+        mPlaceId = placeId;
+        mTrashType = trashType;
+        mBinId = binId;
+        mUnderground = underground;
+        mCleaning = cleaning;
+        mProgress = progress;
+        mLatitude = lat;
+        mLongitude = lng;
+
     }
 
     public String getPlaceId() {
@@ -68,6 +85,15 @@ public class Container {
     public int getProgress() {
         return mProgress;
     }
+
+    public double getLatitude() { return mLatitude; }
+
+    public double getLongitude() { return mLongitude; }
+
+    public void setLatitude(double lat) { lat = mLatitude; }
+
+    public void setLongitude(double lng) { lng = mLongitude; }
+
 
 
     public static class ContainersResult {
