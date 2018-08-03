@@ -132,7 +132,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         float zoomLevel = 15.5f; //This goes up to 21
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(50.0889853530001, 14.4723441130001), zoomLevel));
         mClusterManager.getMarkerCollection()
-                .setOnInfoWindowAdapter(new CustomInfoWindow(LayoutInflater.from(this)));
+                .setOnInfoWindowAdapter(new CustomInfoWindow(this));
 
     }
 
@@ -292,6 +292,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                                 // pass the Containers list to info window
                                 Marker marker = renderer.getMarker(clusterItem);
                                 marker.setTag(containersList);
+
 
                                 return false;
                             }
