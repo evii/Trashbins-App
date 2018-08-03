@@ -2,6 +2,7 @@ package cz.optimization.odpadky;
 
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
@@ -33,6 +34,7 @@ import cz.optimization.odpadky.retrofit_data.APIClient;
 import cz.optimization.odpadky.retrofit_data.GetDataService;
 import cz.optimization.odpadky.objects.Place;
 import cz.optimization.odpadky.del.TrashbinDbHelper;
+import cz.optimization.odpadky.ui.DetailActivity;
 import cz.optimization.odpadky.ui.clusters.CustomClusterRenderer;
 import cz.optimization.odpadky.ui.clusters.TrashbinClusterItem;
 import cz.optimization.odpadky.ui.info_window.CustomInfoWindow;
@@ -45,7 +47,7 @@ import static java.lang.Math.round;
 // TODO po otevreni - upravit lokaci dle aktualni polohy
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback,
-        SelectTrashbinDialogFragment.AlertPositiveListener {
+        SelectTrashbinDialogFragment.AlertPositiveListener, GoogleMap.OnInfoWindowClickListener {
 
     private GoogleMap mMap;
     private int position = 0;
@@ -133,6 +135,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(50.0889853530001, 14.4723441130001), zoomLevel));
         mClusterManager.getMarkerCollection()
                 .setOnInfoWindowAdapter(new CustomInfoWindow(this));
+
+        // Set a listener for info window events.
+        mMap.setOnInfoWindowClickListener(this);
 
     }
 
@@ -232,6 +237,20 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     }
 
+    // opening DetailActivity after clicking on Info Window
+    @Override
+    public void onInfoWindowClick(Marker marker) {
+        Intent intent = new Intent(this, DetailActivity.class);
+        String list = marker.getTitle();
+        String placeId = marker.getSnippet();
+        intent.putExtra("placeId", placeId);
+        intent.putExtra("containersList", list);
+        startActivity(intent);
+
+
+       // Toast.makeText(this, "Info window clicked",
+         //       Toast.LENGTH_SHORT).show();
+    }
 
     // helper method to get the places from the API - using retrofit + seting onclicklisteners on markers
     private void fetchPlaces() {
@@ -292,6 +311,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                                 // pass the Containers list to info window
                                 Marker marker = renderer.getMarker(clusterItem);
                                 marker.setTag(containersList);
+                                marker.setTitle(containersList);
 
 
                                 return false;
