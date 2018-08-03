@@ -62,12 +62,13 @@ public class CustomInfoWindow implements GoogleMap.InfoWindowAdapter {
         details_tv.setText(marker.getSnippet());
 
         String containersList = (String) marker.getTag();
-
+        Log.v("onresp", containersList+" ");
 
         Type type = new TypeToken<List<Container>>() {
         }.getType();
         Gson gson = new Gson();
         List<Container> containers = gson.fromJson(containersList, type);
+
         String placeId = containers.get(0).getPlaceId();
         list_tv.setText(placeId);
 

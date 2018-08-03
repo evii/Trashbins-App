@@ -46,7 +46,9 @@ import retrofit2.Response;
 
 import static java.lang.Math.round;
 
-// TODO
+// TODO Poresit skryti API
+// TODO funkce widgetu - aby otevrel pouze vybranou kategorii kontejneru
+// TODO otevreni dle aktualni lokace - vysvetleni pro reviewera
 
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback,
@@ -64,6 +66,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private List<TrashbinClusterItem> mListLocations;
     private List<Place> mListPlaces;
     private CustomClusterRenderer renderer;
+    private TrashbinClusterItem trashbinClusterItem;
 
     public static final String PREFS_NAME = "Containers_object";
     public static final String PREFS_KEY = "Containers_key";
@@ -136,8 +139,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         onPositiveClick(previousPosition);
         float zoomLevel = 15.5f; //This goes up to 21
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(50.0889853530001, 14.4723441130001), zoomLevel));
-        mClusterManager.getMarkerCollection()
-                .setOnInfoWindowAdapter(new CustomInfoWindow(this));
+
+
 
         // Set a listener for info window events.
         mMap.setOnInfoWindowClickListener(this);
@@ -220,10 +223,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         intent.putExtra("placeId", placeId);
         intent.putExtra("containersList", list);
         startActivity(intent);
-
-
-        // Toast.makeText(this, "Info window clicked",
-        //       Toast.LENGTH_SHORT).show();
     }
 
     // helper method to get the places from the API - using retrofit + seting onclicklisteners on markers
@@ -289,6 +288,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                                 return false;
                             }
                         });
+
             }
 
             @Override
@@ -317,8 +317,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             address = place.getTitle();
             placeId = place.getPlaceId();
 
+            trashbinClusterItem = new TrashbinClusterItem(lat, lng, address, placeId);
             // Adding the marker to the List
-            ListItems.add(new TrashbinClusterItem(lat, lng, address, placeId));
+            ListItems.add(trashbinClusterItem);
         }
         return ListItems;
     }
@@ -341,6 +342,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 editor.putString(PREFS_KEY, containersString);
                 editor.commit();
 
+                mClusterManager.getMarkerCollection()
+                        .setOnInfoWindowAdapter(new CustomInfoWindow(MapsActivity.this));
             }
 
             @Override
@@ -351,6 +354,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         });
     }
 
+    // helper method to display containers of selected type
     private void fetchContainersType(final String trashTypeSelected) {
 
         GetDataService service = APIClient.getClient().create(GetDataService.class);
@@ -405,7 +409,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         });
     }
 
-
+// helper method to get clusteritems for container of selected type
     private List<TrashbinClusterItem> getContainersLocation(List<Container> containers) {
         List<TrashbinClusterItem> ListItems = new ArrayList<>();
 
