@@ -58,44 +58,28 @@ public class CustomInfoWindow implements GoogleMap.InfoWindowAdapter {
 
         TextView text_tv = popup.findViewById(R.id.info_text);
         TextView details_tv = popup.findViewById(R.id.info_snippet);
-        final TextView list_tv = popup.findViewById(R.id.info_detail);
+        TextView list_tv = popup.findViewById(R.id.info_detail);
 
-        String placeId = marker.getSnippet();
+
         text_tv.setText(marker.getTitle());
         details_tv.setText(marker.getSnippet());
 
+        String containersList = (String) marker.getTag();
+        Log.v("onresp", containersList+" ");
 
-        MapsActivity.fetchContainersAtPlace(placeId, new MapsActivity.FetchContainersAtPlaceCallbacks() {
-            @Override
-            public void onSuccess(@NonNull String containersString) {
+        Type type = new TypeToken<List<Container>>() {
+        }.getType();
+        Gson gson = new Gson();
+        List<Container> containers = gson.fromJson(containersList, type);
 
-                list_tv.setText(containersString); // not working
-                Log.v("CustomInfoWindow", containersString);
+        SharedPreferences prefs =  mContext.getSharedPreferences(MapsActivity.PREFS_NAME,
+                Context.MODE_PRIVATE);
+        String placeId = prefs.getString("PlaceId", "");
 
-                /*Type type = new TypeToken<List<Container>>() {
-                }.getType();
-                Gson gson = new Gson();
-                List<Container> containers = gson.fromJson(containersString, type);*/
-
-            }
-
-            @Override
-            public void onError(@NonNull Throwable throwable) {
-
-            }
-        });
+        /*String placeId = containers.get(0).getPlaceId();*/
+        list_tv.setText(placeId);
 
 
-
-
-
-
-
-
-
-
-      /*  String placeId = containers.get(0).getPlaceId();
-        list_tv.setText(placeId);*/
 
        /* if (containers != null) {
             if (containers.size() > 0) {
@@ -115,7 +99,6 @@ public class CustomInfoWindow implements GoogleMap.InfoWindowAdapter {
                     String progressString = String.valueOf(progress)+ " %";
                     progressTV.setText(progressString);
                     progressTV.setTextSize(12f);
-
                     trashTypeTV.setLayoutParams(lp);
                     progressTV.setLayoutParams(lp);
                     itemLayout.addView(trashTypeTV);
