@@ -3,9 +3,12 @@ package cz.optimization.odpadky.ui.info_window;
 import android.app.Activity;
 import android.app.LauncherActivity;
 import android.content.Context;
+
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.support.annotation.MainThread;
+
+import android.support.annotation.NonNull;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -51,26 +54,48 @@ public class CustomInfoWindow implements GoogleMap.InfoWindowAdapter {
     public View getInfoContents(Marker marker) {
 
         final View popup = ((Activity) mContext).getLayoutInflater().inflate(R.layout.info_window, null);
-      //  LinearLayout view = (LinearLayout) popup;
+        //  LinearLayout view = (LinearLayout) popup;
 
         TextView text_tv = popup.findViewById(R.id.info_text);
         TextView details_tv = popup.findViewById(R.id.info_snippet);
-        TextView list_tv = popup.findViewById(R.id.info_detail);
+        final TextView list_tv = popup.findViewById(R.id.info_detail);
 
-
+        String placeId = marker.getSnippet();
         text_tv.setText(marker.getTitle());
         details_tv.setText(marker.getSnippet());
 
-        String containersList = (String) marker.getTag();
-        Log.v("onresp", containersList+" ");
 
-        Type type = new TypeToken<List<Container>>() {
-        }.getType();
-        Gson gson = new Gson();
-        List<Container> containers = gson.fromJson(containersList, type);
+        MapsActivity.fetchContainersAtPlace(placeId, new MapsActivity.FetchContainersAtPlaceCallbacks() {
+            @Override
+            public void onSuccess(@NonNull String containersString) {
 
-        String placeId = containers.get(0).getPlaceId();
-        list_tv.setText(placeId);
+                list_tv.setText(containersString); // not working
+                Log.v("CustomInfoWindow", containersString);
+
+                /*Type type = new TypeToken<List<Container>>() {
+                }.getType();
+                Gson gson = new Gson();
+                List<Container> containers = gson.fromJson(containersString, type);*/
+
+            }
+
+            @Override
+            public void onError(@NonNull Throwable throwable) {
+
+            }
+        });
+
+
+
+
+
+
+
+
+
+
+      /*  String placeId = containers.get(0).getPlaceId();
+        list_tv.setText(placeId);*/
 
        /* if (containers != null) {
             if (containers.size() > 0) {

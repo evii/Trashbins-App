@@ -5,6 +5,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.ArrayMap;
@@ -44,7 +46,6 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-import static java.lang.Math.round;
 
 // TODO Poresit skryti API
 // TODO funkce widgetu - aby otevrel pouze vybranou kategorii kontejneru
@@ -57,28 +58,20 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private GoogleMap mMap;
     private int position = 0;
 
-    TrashbinDbHelper dbHelper;
-
     private static final String POSITION_KEY = "position";
     private int previousPosition;
 
     private ClusterManager<TrashbinClusterItem> mClusterManager;
-    private List<TrashbinClusterItem> mListLocations;
     private List<Place> mListPlaces;
     private CustomClusterRenderer renderer;
     private TrashbinClusterItem trashbinClusterItem;
-
-    public static final String PREFS_NAME = "Containers_object";
-    public static final String PREFS_KEY = "Containers_key";
-    private SharedPreferences sharedPreferences;
+    private List<TrashbinClusterItem> mListItems;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
-
-        sharedPreferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -253,42 +246,15 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 mClusterManager.setOnClusterItemClickListener(
                         new ClusterManager.OnClusterItemClickListener<TrashbinClusterItem>() {
                             @Override
-                            public boolean onClusterItemClick(TrashbinClusterItem clusterItem) {
-
+                            public boolean onClusterItemClick(final TrashbinClusterItem clusterItem) {
 
                                 mMap.setInfoWindowAdapter(mClusterManager.getMarkerManager());
-
-                                //get marker from clusterItem
-
-                                String placeId = clusterItem.getSnippet();
-                                Log.v("JsonParseMAPS", placeId);
-
-                                //get Containers for given placeId
-                                fetchContainersAtPlace(placeId);
-
-                                // get Containers details from shared preferences
-                                String containersList = "";
-                                SharedPreferences sharedpreferences = getSharedPreferences(PREFS_NAME,
-                                        Context.MODE_PRIVATE);
-                                if (sharedpreferences.contains(PREFS_KEY)) {
-                                    containersList = sharedpreferences.getString(PREFS_KEY, "");
-                                } else {
-                                    Log.d("MapsActivity", "List of containers not available");
-                                }
-
-                                SharedPreferences.Editor editor = sharedpreferences.edit();
-                                editor.clear();
-                                editor.commit();
-
-                                // pass the Containers list to info window
-                                Marker marker = renderer.getMarker(clusterItem);
-                                marker.setTag(containersList);
-                                marker.setTitle(containersList);
+                                mClusterManager.getMarkerCollection()
+                                        .setOnInfoWindowAdapter(new CustomInfoWindow(MapsActivity.this));
 
                                 return false;
                             }
                         });
-
             }
 
             @Override
@@ -301,7 +267,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     // helper method to transfer the List of places into the cluster items
     private List<TrashbinClusterItem> getPlaceLocation(List<Place> places) {
-        List<TrashbinClusterItem> ListItems = new ArrayList<>();
+        mListItems = new ArrayList<>();
 
         int locationCount = places.size();
         String address = "";
@@ -319,13 +285,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             trashbinClusterItem = new TrashbinClusterItem(lat, lng, address, placeId);
             // Adding the marker to the List
-            ListItems.add(trashbinClusterItem);
+            mListItems.add(trashbinClusterItem);
         }
-        return ListItems;
+        return mListItems;
     }
 
     // helper method to get details of containers in a place
-    private void fetchContainersAtPlace(String placeId) {
+    public static void fetchContainersAtPlace(String placeId, @Nullable final FetchContainersAtPlaceCallbacks callbacks) {
 
         GetDataService service = APIClient.getClient().create(GetDataService.class);
         Call<Container.ContainersResult> call = service.getContainersList(placeId);
@@ -337,19 +303,15 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 Gson gson = new Gson();
                 String containersString = gson.toJson(containers);
 
-                // Puting data about Containers at given place to SharedPreferences
-                SharedPreferences.Editor editor = sharedPreferences.edit();
-                editor.putString(PREFS_KEY, containersString);
-                editor.commit();
-
-                mClusterManager.getMarkerCollection()
-                        .setOnInfoWindowAdapter(new CustomInfoWindow(MapsActivity.this));
+                if (callbacks != null)
+                    callbacks.onSuccess(containersString);
             }
 
             @Override
             public void onFailure(Call<Container.ContainersResult> call, Throwable t) {
-
-                Toast.makeText(MapsActivity.this, R.string.No_internet_connection, Toast.LENGTH_LONG).show();
+                if (callbacks != null)
+                    callbacks.onError(t);
+            //    Toast.makeText(MapsActivity.this, R.string.No_internet_connection, Toast.LENGTH_LONG).show();
             }
         });
     }
@@ -433,6 +395,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         return ListItems;
     }
 
+
+    public interface FetchContainersAtPlaceCallbacks {
+        void onSuccess(@NonNull String value);
+
+        void onError(@NonNull Throwable throwable);
+    }
 
 }
 
