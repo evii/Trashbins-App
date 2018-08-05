@@ -1,10 +1,9 @@
 <resources>
     <string name="app_name">Trashbins</string>
     <string name="title_activity_maps">Map</string>
-    <string name="google_maps_key">AIzaSyDiB4tWgjXTjiNKfjC6uuPlsmB3uBy6mzM</string>
 
     <string name="No_internet_connection">"There is no internet connection, please try again later"</string>
-    <string name="Cluster_click">"To get information on containers at this place, please zoom-in and click on marker."</string>
+    <string name="Cluster_click">"Please zoom-in and click on marker."</string>
 
     <string name="glass">glass</string>
     <string name="clear_glass">clear_glass</string>
@@ -44,6 +43,5 @@
     <string name="filter_litter_key">filter_litter</string>
     <string name="filter_litter_title">Type of trashbin</string>
     <string name="filter_litter_title_dialog">Select type of trashbin:</string>
-
 
 </resources>

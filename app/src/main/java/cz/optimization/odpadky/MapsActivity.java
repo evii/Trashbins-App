@@ -48,9 +48,13 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 
-// TODO Poresit skryti API
+// TODO Admob
+// TODO Appbar
+// TODO Room + save to & retreive from db
+// TODO Async
 // TODO funkce widgetu - aby otevrel pouze vybranou kategorii kontejneru
 // TODO otevreni dle aktualni lokace - vysvetleni pro reviewera
+// TODO transition between activities
 
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback,
@@ -73,6 +77,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public static final String PREFS_NAME = "Containers_object";
     public static final String PREFS_KEY = "Containers_key";
     private SharedPreferences sharedPreferences;
+
+    private static final String TAG = "CustomInfoWindow";
 
 
     @Override
@@ -227,10 +233,20 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onInfoWindowClick(Marker marker) {
         Intent intent = new Intent(this, DetailActivity.class);
-        String list = marker.getTitle();
+        String title = marker.getTitle();
         String placeId = marker.getSnippet();
+        String containersList = "";
+        if (sharedPreferences.contains(PREFS_KEY)) {
+            containersList = sharedPreferences.getString(PREFS_KEY, "");
+        }
+        else {
+            Log.d(TAG, "ContainersList not contained in Shared preferences");
+        }
+
+
         intent.putExtra("placeId", placeId);
-        intent.putExtra("containersList", list);
+        intent.putExtra("title", title);
+        intent.putExtra("containersList", containersList);
         startActivity(intent);
     }
 
@@ -339,35 +355,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 editor.putString(PREFS_KEY, containersString);
                 editor.commit();
 
-
-
-
-
-
-
-                ////
-
-
-
-                // get Containers details from shared preferences
-                // String containersList = "";
-                // SharedPreferences sharedpreferences = getSharedPreferences(PREFS_NAME,
-                //         Context.MODE_PRIVATE);
-                // if (sharedpreferences.contains(PREFS_KEY)) {
-                //     containersList = sharedpreferences.getString(PREFS_KEY, "");
-                // } else {
-                //     Log.d("MapsActivity", "List of containers not available");
-                // }
-
-                //editor.clear();
-                //editor.commit();
-
                 // pass the Containers list to info window
-
                 Marker marker = renderer.getMarker(trashbinClusterItem);
                 marker.setTag(containersString);
-                marker.setTitle("oli");
-
+                marker.showInfoWindow();
 
 
             }
