@@ -15,6 +15,7 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -137,14 +138,25 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
+
+        // Set a listener for info window events.
+        mMap.setOnInfoWindowClickListener(this);
+
+        mClusterManager = new ClusterManager<>(this, mMap);
+        mMap.setInfoWindowAdapter(mClusterManager.getMarkerManager());
+
+        mMap.setOnCameraIdleListener(mClusterManager);
+        mMap.setOnMarkerClickListener(mClusterManager);
+        renderer = new CustomClusterRenderer(this, mMap, mClusterManager);
+        mClusterManager.setRenderer(renderer);
+        mClusterManager.getMarkerCollection()
+                .setOnInfoWindowAdapter(new CustomInfoWindow(MapsActivity.this));
+
         onPositiveClick(previousPosition);
         float zoomLevel = 15.5f; //This goes up to 21
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(50.0889853530001, 14.4723441130001), zoomLevel));
 
 
-
-        // Set a listener for info window events.
-        mMap.setOnInfoWindowClickListener(this);
 
     }
 
@@ -152,11 +164,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onPositiveClick(int position) {
         this.position = position;
 
-        mClusterManager = new ClusterManager<>(this, mMap);
-        mMap.setOnCameraIdleListener(mClusterManager);
-        mMap.setOnMarkerClickListener(mClusterManager);
-        renderer = new CustomClusterRenderer(this, mMap, mClusterManager);
-        mClusterManager.setRenderer(renderer);
+
 
         switch (position) {
             case 0:
@@ -239,6 +247,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 mClusterManager.addItems(getPlaceLocation(mListPlaces));
                 mClusterManager.cluster();
 
+
                 // onclick listener for cluster
                 mClusterManager.setOnClusterClickListener(
                         new ClusterManager.OnClusterClickListener<TrashbinClusterItem>() {
@@ -256,37 +265,22 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                             @Override
                             public boolean onClusterItemClick(TrashbinClusterItem clusterItem) {
 
+                                trashbinClusterItem =clusterItem;
 
-                                mMap.setInfoWindowAdapter(mClusterManager.getMarkerManager());
 
                                 //get marker from clusterItem
 
                                 String placeId = clusterItem.getSnippet();
                                 Log.v("JsonParseMAPS", placeId);
 
+                                SharedPreferences.Editor editor = sharedPreferences.edit();
+                                editor.putString("placeid", placeId);
+                                editor.commit();
+
+
                                 //get Containers for given placeId
                                 fetchContainersAtPlace(placeId);
 
-                                // get Containers details from shared preferences
-                                String containersList = "";
-                                SharedPreferences sharedpreferences = getSharedPreferences(PREFS_NAME,
-                                        Context.MODE_PRIVATE);
-                                SharedPreferences.Editor editor = sharedPreferences.edit();
-                                editor.putString("PlaceId", placeId);
-                                editor.commit();
-                                if (sharedpreferences.contains(PREFS_KEY)) {
-                                    containersList = sharedpreferences.getString(PREFS_KEY, "");
-                                } else {
-                                    Log.d("MapsActivity", "List of containers not available");
-                                }
-
-                                editor.clear();
-                                editor.commit();
-
-                                // pass the Containers list to info window
-                                Marker marker = renderer.getMarker(clusterItem);
-                                marker.setTag(containersList);
-                                marker.setTitle(containersList);
 
                                 return false;
                             }
@@ -345,8 +339,37 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 editor.putString(PREFS_KEY, containersString);
                 editor.commit();
 
-                mClusterManager.getMarkerCollection()
-                        .setOnInfoWindowAdapter(new CustomInfoWindow(MapsActivity.this));
+
+
+
+
+
+
+                ////
+
+
+
+                // get Containers details from shared preferences
+                // String containersList = "";
+                // SharedPreferences sharedpreferences = getSharedPreferences(PREFS_NAME,
+                //         Context.MODE_PRIVATE);
+                // if (sharedpreferences.contains(PREFS_KEY)) {
+                //     containersList = sharedpreferences.getString(PREFS_KEY, "");
+                // } else {
+                //     Log.d("MapsActivity", "List of containers not available");
+                // }
+
+                //editor.clear();
+                //editor.commit();
+
+                // pass the Containers list to info window
+
+                Marker marker = renderer.getMarker(trashbinClusterItem);
+                marker.setTag(containersString);
+                marker.setTitle("oli");
+
+
+
             }
 
             @Override

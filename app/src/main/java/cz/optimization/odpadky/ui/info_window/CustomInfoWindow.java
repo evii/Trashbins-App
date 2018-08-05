@@ -35,6 +35,7 @@ import cz.optimization.odpadky.objects.Container;
 
 import static android.content.Context.LAYOUT_INFLATER_SERVICE;
 
+
 public class CustomInfoWindow implements GoogleMap.InfoWindowAdapter {
 
     private Context mContext;
@@ -58,27 +59,27 @@ public class CustomInfoWindow implements GoogleMap.InfoWindowAdapter {
 
         TextView text_tv = popup.findViewById(R.id.info_text);
         TextView details_tv = popup.findViewById(R.id.info_snippet);
-        TextView list_tv = popup.findViewById(R.id.info_detail);
+            TextView list_tv = popup.findViewById(R.id.info_detail);
 
-
+      //  String placeId = marker.getSnippet();
         text_tv.setText(marker.getTitle());
         details_tv.setText(marker.getSnippet());
 
-        String containersList = (String) marker.getTag();
-        Log.v("onresp", containersList+" ");
+
+        String containersList = "";
+        SharedPreferences sharedpreferences = mContext.getSharedPreferences(MapsActivity.PREFS_NAME,
+                Context.MODE_PRIVATE);
+        if (sharedpreferences.contains(MapsActivity.PREFS_KEY)) {
+            containersList = sharedpreferences.getString(MapsActivity.PREFS_KEY, "");
+        }
 
         Type type = new TypeToken<List<Container>>() {
         }.getType();
         Gson gson = new Gson();
         List<Container> containers = gson.fromJson(containersList, type);
 
-        SharedPreferences prefs =  mContext.getSharedPreferences(MapsActivity.PREFS_NAME,
-                Context.MODE_PRIVATE);
-        String placeId = prefs.getString("PlaceId", "");
-
-        /*String placeId = containers.get(0).getPlaceId();*/
-        list_tv.setText(placeId);
-
+        String placeId = sharedpreferences.getString("placeid","");
+        list_tv.setText(containersList);
 
 
        /* if (containers != null) {
