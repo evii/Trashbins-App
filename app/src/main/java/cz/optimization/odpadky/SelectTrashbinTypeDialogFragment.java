@@ -12,7 +12,7 @@ import android.support.v7.app.AlertDialog;
  * Created by evi on 18. 12. 2017.
  */
 
-public class SelectTrashbinDialogFragment extends DialogFragment {
+public class SelectTrashbinTypeDialogFragment extends DialogFragment {
 
     //Declaring the interface, to invoke a callback function in the implementing activity class
     AlertPositiveListener alertPositiveListener;

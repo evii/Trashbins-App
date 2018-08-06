@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="cz.optimization.myapplication.ScrollingActivity">
+    <item
+        android:id="@+id/action_watched"
+        android:orderInCategory="100"
+        android:icon="@drawable/ic_remove_red_eye_black_24dp"
+        android:title="@string/watched"
+        app:showAsAction="always" />
+</menu>
