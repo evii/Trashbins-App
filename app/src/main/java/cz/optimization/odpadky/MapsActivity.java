@@ -40,13 +40,18 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 
-// TODO Admob
-// TODO Appbar
-// TODO Room + save to & retreive from db
-// TODO Async
+// TODO Layout Detail Activity
+// TODO Zkontroluj update dialogu watched places
+// TODO Pridej funkci show pro polozku dialogu - watched list
+// TODO Pridej Delete function listu watched places
+// TODO zmena barvy markeru dle typu odpadu
+// TODO progress bar pro otvirani lokaci
 // TODO funkce widgetu - aby otevrel pouze vybranou kategorii kontejneru
+// TODO saved instance po zmene orientace
+// TODO sipka zpet v Detail ASctivity - funkce
 // TODO otevreni dle aktualni lokace - vysvetleni pro reviewera
 // TODO transition between activities
+
 
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback,
@@ -140,7 +145,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         // Set a listener for info window events.
         mMap.setOnInfoWindowClickListener(this);
 
-        mClusterManager = new ClusterManager<>(this, mMap);
+        mClusterManager = new ClusterManager<>(getBaseContext(), mMap);
         mMap.setInfoWindowAdapter(mClusterManager.getMarkerManager());
 
         mMap.setOnCameraIdleListener(mClusterManager);
@@ -217,7 +222,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 break;
 
         }
-        mClusterManager.cluster();
+      //  mClusterManager.cluster();
 
     }
 
@@ -243,7 +248,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     // helper method to get the places from the API - using retrofit + seting onclicklisteners on markers
-    private void fetchPlaces() {
+    public void fetchPlaces() {
 
         GetDataService service = APIClient.getClient().create(GetDataService.class);
         Call<List<Place>> call = service.getAllPlaces();
@@ -252,6 +257,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             public void onResponse(Call<List<Place>> call, Response<List<Place>> response) {
 
                 mListPlaces = response.body();
+
                 mClusterManager.addItems(getPlaceLocation(mListPlaces));
                 mClusterManager.cluster();
 
@@ -364,7 +370,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     // helper method to display containers of selected type
-    private void fetchContainersType(final String trashTypeSelected) {
+    public void fetchContainersType(final String trashTypeSelected) {
 
         GetDataService service = APIClient.getClient().create(GetDataService.class);
         Call<List<Container>> call = service.getContainersTypes();

@@ -3,54 +3,63 @@
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="@dimen/widget_margin">
+    android:padding="@dimen/widget_margin"
+    android:background="@color/colorPrimaryDark">
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/all_containers_tv"
-        android:text="@string/filter_litter_all_label"/>
+        android:text="@string/filter_litter_all_label"
+        android:textSize="20sp"/>
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/glass_containers_tv"
-        android:text="@string/filter_litter_colour_glass_label"/>
+        android:text="@string/filter_litter_colour_glass_label"
+        android:textSize="20sp"/>
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/clear_glass_containers_tv"
-        android:text="@string/filter_litter_white_glass_label"/>
+        android:text="@string/filter_litter_white_glass_label"
+        android:textSize="20sp"/>
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/metal_containers_tv"
-        android:text="@string/filter_litter_all_label"/>
+        android:text="@string/filter_litter_metal_label"
+        android:textSize="20sp"/>
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/plastic_containers_tv"
-        android:text="@string/filter_litter_plastic_label"/>
+        android:text="@string/filter_litter_plastic_label"
+        android:textSize="20sp"/>
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/paper_containers_tv"
-        android:text="@string/filter_litter_paper_label"/>
+        android:text="@string/filter_litter_paper_label"
+        android:textSize="20sp"/>
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/carton_containers_tv"
-        android:text="@string/filter_litter_carton_label"/>
+        android:text="@string/filter_litter_carton_label"
+        android:textSize="20sp"/>
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/electrical_containers_tv"
-        android:text="@string/filter_litter_electrical_label"/>
+        android:text="@string/filter_litter_electrical_label"
+        android:textSize="20sp"/>
 
 </LinearLayout>
