@@ -12,17 +12,17 @@ import cz.optimization.odpadky.R;
 
 public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.RecyclerViewHolder> {
 
-    //private List<PlaceWatched> mPlacesList;
-    private  String[] mTvshows;
-    private View.OnLongClickListener longClickListener;
+    private List<PlaceWatched> mPlacesList;
+   // private  String[] mTvshows;
+    private View.OnClickListener mClickListener;
 
 
-    public RecyclerViewAdapter( String[] tvshows, View.OnLongClickListener longClickListener){
+   // public RecyclerViewAdapter( String[] tvshows, View.OnClickListener clickListener){
 
-    //public RecyclerViewAdapter(List<PlaceWatched> placesWatchedList, View.OnLongClickListener longClickListener) {
-        //mPlacesList = placesWatchedList;
-        mTvshows = tvshows;
-        this.longClickListener = longClickListener;
+    public RecyclerViewAdapter(List<PlaceWatched> placesWatchedList, View.OnClickListener clickListener) {
+        mPlacesList = placesWatchedList;
+        //mTvshows = tvshows;
+        mClickListener = clickListener;
     }
 
     @Override
@@ -33,31 +33,30 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
 
     @Override
     public void onBindViewHolder(final RecyclerViewHolder holder, int position) {
-        //PlaceWatched placeWatched = mPlacesList.get(position);
+        PlaceWatched placeWatched = mPlacesList.get(position);
 
-        String tvshow = mTvshows[position];
-        //holder.itemTextView.setText(placeWatched.getTitle());
-        holder.itemTextView.setText(tvshow);
-        //holder.itemView.setTag(placeWatched);
-        holder.itemView.setOnLongClickListener(longClickListener);
+       // String tvshow = mTvshows[position];
+        holder.itemTextView.setText(placeWatched.getTitle());
+       // holder.itemTextView.setText(tvshow);
+        holder.itemView.setTag(placeWatched);
+        holder.itemView.setOnClickListener(mClickListener);
     }
 
     @Override
     public int getItemCount() {
         return
-                //mPlacesList.size();
-        mTvshows.length;
+                mPlacesList.size();
+      //  mTvshows.length;
     }
 
-    /*public void addItems(List<PlaceWatched> placesWatchedList) {
+    public void addItems(List<PlaceWatched> placesWatchedList) {
         mPlacesList = placesWatchedList;
         notifyDataSetChanged();
     }
-*/
-    public void addItems(String[] names) {
+   /* public void addItems(String[] names) {
         mTvshows = names;
         notifyDataSetChanged();
-    }
+    }*/
 
     static class RecyclerViewHolder extends RecyclerView.ViewHolder {
         private TextView itemTextView;

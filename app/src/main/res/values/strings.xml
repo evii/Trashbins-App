@@ -45,5 +45,6 @@
     <string name="filter_litter_title_dialog">Select type of trashbin:</string>
 
     <string name="watched">Watched</string>
+    <string name="watch_list">Places added to watch list</string>
 
 </resources>
