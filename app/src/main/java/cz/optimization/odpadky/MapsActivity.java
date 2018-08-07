@@ -32,6 +32,7 @@ import cz.optimization.odpadky.retrofit_data.GetDataService;
 import cz.optimization.odpadky.objects.Place;
 import cz.optimization.odpadky.del.TrashbinDbHelper;
 import cz.optimization.odpadky.ui.DetailActivity;
+import cz.optimization.odpadky.ui.TrashbinAppWidgetProvider;
 import cz.optimization.odpadky.ui.clusters.CustomClusterRenderer;
 import cz.optimization.odpadky.ui.clusters.TrashbinClusterItem;
 import cz.optimization.odpadky.ui.info_window.CustomInfoWindow;
@@ -59,8 +60,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private GoogleMap mMap;
     private int position = 0;
-
-    TrashbinDbHelper dbHelper;
 
     private static final String POSITION_KEY = "position";
     private int previousPosition;
@@ -96,6 +95,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         } else {
             previousPosition = position;
         }
+
     }
 
     @Override
@@ -160,7 +160,21 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(50.0889853530001, 14.4723441130001), zoomLevel));
 
 
+        String widgetClicked = "";
+        Bundle extras = getIntent().getExtras();
+        if(extras == null) {
+            widgetClicked= null;
+        } else {
+            widgetClicked= extras.getString("widget_clicked");
 
+            if (widgetClicked.equals(TrashbinAppWidgetProvider.METAL_BUTTON)){
+                Log.v("Widgetwigd",widgetClicked+" "+ TrashbinAppWidgetProvider.METAL_BUTTON );
+                mMap.clear();
+                setTitle(R.string.metal_title);
+                fetchContainersType(getResources().getString(R.string.metal));
+               // mClusterManager.cluster();
+            }
+        }
     }
 
     @Override
@@ -222,7 +236,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 break;
 
         }
-      //  mClusterManager.cluster();
+     //   mClusterManager.cluster();
 
     }
 
@@ -397,6 +411,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                     if (trashType.equals(trashTypeSelected)) {
 
+
                         String placeId = container.getPlaceId();
                         Place selectedPlace = allPlacesMap.get(placeId);
                         double lat = selectedPlace.getLatitude();
@@ -413,6 +428,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }
 
                 mClusterManager.addItems(getContainersLocation(containerCoordinatesList));
+                Log.v("containRetro contCoord", String.valueOf(containerCoordinatesList.size()));
                 mClusterManager.cluster();
             }
 

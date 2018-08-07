@@ -12,7 +12,7 @@ import cz.optimization.odpadky.R;
 
 public class TrashbinAppWidgetProvider extends AppWidgetProvider {
 
-    public static String METAL_BUTTON = "android.appwidget.action.METAL_BUTTON";
+    public static final String METAL_BUTTON = "android.appwidget.action.METAL_BUTTON";
 
 
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
@@ -46,16 +46,11 @@ public class TrashbinAppWidgetProvider extends AppWidgetProvider {
     public void onReceive(Context context, Intent intent) {
         if (METAL_BUTTON.equals(intent.getAction())) {
 
-
-
-
             Intent i = new Intent();
+            i.putExtra("widget_clicked", METAL_BUTTON );
             i.setClassName("cz.optimization.odpadky", "cz.optimization.odpadky.MapsActivity");
             i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(i);
-            MapsActivity maps = new MapsActivity();
-            maps.fetchPlaces();
-            maps.fetchContainersType(String. valueOf(R.string.metal));
 
         }
 
