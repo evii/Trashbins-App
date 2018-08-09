@@ -48,7 +48,7 @@ import retrofit2.Response;
 // TODO zmena barvy markeru dle typu odpadu
 // TODO progress bar pro otvirani lokaci
 // TODO funkce widgetu - aby otevrel pouze vybranou kategorii kontejneru
-// TODO saved instance po zmene orientace
+// TODO saved instance po zmene orientace - vsude
 // TODO sipka zpet v Detail ASctivity - funkce
 // TODO otevreni dle aktualni lokace - vysvetleni pro reviewera
 // TODO transition between activities
@@ -65,7 +65,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private int previousPosition;
 
     private ClusterManager<TrashbinClusterItem> mClusterManager;
-    private List<TrashbinClusterItem> mListLocations;
     private List<Place> mListPlaces;
     private CustomClusterRenderer renderer;
     private TrashbinClusterItem trashbinClusterItem;
@@ -74,7 +73,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public static final String PREFS_KEY = "Containers_key";
     private SharedPreferences sharedPreferences;
 
-    private static final String TAG = "CustomInfoWindow";
+    private static final String TAG = "MapsActivity";
 
 
     @Override
@@ -88,6 +87,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
         if (savedInstanceState != null) {
             if (savedInstanceState.containsKey(POSITION_KEY)) {
                 previousPosition = savedInstanceState.getInt(POSITION_KEY);
@@ -95,7 +95,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         } else {
             previousPosition = position;
         }
-
     }
 
     @Override
@@ -155,7 +154,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mClusterManager.getMarkerCollection()
                 .setOnInfoWindowAdapter(new CustomInfoWindow(MapsActivity.this));
 
-        onPositiveClick(previousPosition);
+
         float zoomLevel = 15.5f; //This goes up to 21
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(50.0889853530001, 14.4723441130001), zoomLevel));
 
@@ -164,6 +163,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         Bundle extras = getIntent().getExtras();
         if(extras == null) {
             widgetClicked= null;
+            onPositiveClick(previousPosition);
         } else {
             widgetClicked= extras.getString("widget_clicked");
 
@@ -171,7 +171,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 Log.v("Widgetwigd",widgetClicked+" "+ TrashbinAppWidgetProvider.METAL_BUTTON );
                 mMap.clear();
                 setTitle(R.string.metal_title);
+                position = 3;
+
                 fetchContainersType(getResources().getString(R.string.metal));
+
                // mClusterManager.cluster();
             }
         }
@@ -357,8 +360,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         call.enqueue(new Callback<Container.ContainersResult>() {
             @Override
             public void onResponse(Call<Container.ContainersResult> call, Response<Container.ContainersResult> response) {
+                int urlResp = response.code();
+                Log.v ("URLCODE", String.valueOf(urlResp));
 
                 List<Container> containers = response.body().getResults();
+
                 Gson gson = new Gson();
                 String containersString = gson.toJson(containers);
 
@@ -385,15 +391,32 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     // helper method to display containers of selected type
     public void fetchContainersType(final String trashTypeSelected) {
-
         GetDataService service = APIClient.getClient().create(GetDataService.class);
-        Call<List<Container>> call = service.getContainersTypes();
-        call.enqueue(new Callback<List<Container>>() {
+if( mListPlaces == null) {
+
+    Call<List<Place>> call1 = service.getAllPlaces();
+    call1.enqueue(new Callback<List<Place>>() {
+        @Override
+        public void onResponse(Call<List<Place>> call, Response<List<Place>> response) {
+            mListPlaces = response.body();
+        }
+
+        @Override
+        public void onFailure(Call<List<Place>> call, Throwable t) {
+
+            Toast.makeText(MapsActivity.this, R.string.No_internet_connection, Toast.LENGTH_LONG).show();
+        }
+    });
+}
+
+ Call<List<Container>> call2 = service.getContainersTypes();
+        call2.enqueue(new Callback<List<Container>>() {
             @Override
             public void onResponse(Call<List<Container>> call, Response<List<Container>> response) {
 
                 List<Container> allContainersList = response.body();
-                Log.v("containRetro allCont: ", String.valueOf(allContainersList.size()));
+                int urlResp = response.code();
+                Log.v("containRetro allCont: ", String.valueOf(allContainersList.size()) + " " + String.valueOf(urlResp));
 
                 //covert list of places with coordinates into array map
                 ArrayMap<String, Place> allPlacesMap = new ArrayMap<String, Place>();
@@ -410,7 +433,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     trashType = container.getTrashType();
 
                     if (trashType.equals(trashTypeSelected)) {
-
 
                         String placeId = container.getPlaceId();
                         Place selectedPlace = allPlacesMap.get(placeId);
@@ -448,7 +470,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         String trashType = "";
         double lat = 0;
         double lng = 0;
-        String progress = "";
+        String placeId = "";
 
         for (int i = 0; i < locationCount; i++) {
             Container container = containers.get(i);
@@ -456,14 +478,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             lat = container.getLatitude();
             lng = container.getLongitude();
             trashType = container.getTrashType();
-            progress = String.valueOf(container.getProgress());
+            placeId = String.valueOf(container.getPlaceId());
 
             // Adding the marker to the List
-            ListItems.add(new TrashbinClusterItem(lat, lng, trashType, progress));
+            ListItems.add(new TrashbinClusterItem(lat, lng, trashType, placeId));
         }
         return ListItems;
     }
-
 
 }
 

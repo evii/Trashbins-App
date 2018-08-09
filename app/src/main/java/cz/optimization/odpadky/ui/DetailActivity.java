@@ -176,7 +176,7 @@ public class DetailActivity extends AppCompatActivity implements View.OnClickLis
     }
 
 
-    private class QueryAllPlacesAsync extends AsyncTask<Void, Void, Void> {
+    /*private class QueryAllPlacesAsync extends AsyncTask<Void, Void, Void> {
 
         @Override
         protected void onPreExecute() {
@@ -193,7 +193,7 @@ public class DetailActivity extends AppCompatActivity implements View.OnClickLis
         @Override
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid); }
-    }
+    }*/
 
 
 

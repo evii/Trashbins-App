@@ -13,14 +13,14 @@
     <string name="carton">carton</string>
     <string name="electrical">electrical</string>
 
-    <string name="all_title">Optimization - All containers</string>
-    <string name="glass_title">Optimization - containers for glass</string>
-    <string name="clear_glass_title">Optimization - containers for clear glass</string>
-    <string name="metal_title">Optimization - containers for metal</string>
-    <string name="plastic_title">Optimization - containers for plastic</string>
-    <string name="paper_title">Optimization - containers for paper</string>
-    <string name="carton_title">Optimization - containers for carton</string>
-    <string name="electrical_title">Optimization - containers for electrical</string>
+    <string name="all_title">All containers</string>
+    <string name="glass_title">Containers for glass</string>
+    <string name="clear_glass_title">Containers for clear glass</string>
+    <string name="metal_title">Containers for metal</string>
+    <string name="plastic_title">Containers for plastic</string>
+    <string name="paper_title">Containers for paper</string>
+    <string name="carton_title">Containers for carton</string>
+    <string name="electrical_title">Containers for electrical</string>
 
     <string name="filter_litter_colour_glass_label">Glass</string>
     <string name="filter_litter_white_glass_label">Clear glass</string>
@@ -46,5 +46,7 @@
 
     <string name="watched">Watched</string>
     <string name="watch_list">Places added to watch list</string>
+
+    <string name="widget_title">Prague trash bins by type:</string>
 
 </resources>

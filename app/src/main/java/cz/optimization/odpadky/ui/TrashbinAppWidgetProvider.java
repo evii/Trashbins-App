@@ -51,7 +51,6 @@ public class TrashbinAppWidgetProvider extends AppWidgetProvider {
             i.setClassName("cz.optimization.odpadky", "cz.optimization.odpadky.MapsActivity");
             i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(i);
-
         }
 
         super.onReceive(context, intent);
