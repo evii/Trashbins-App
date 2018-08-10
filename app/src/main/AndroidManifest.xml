@@ -34,15 +34,16 @@
             </intent-filter>
         </activity>
 
-        <provider
-            android:name=".del.TrashbinContentProvider"
-            android:authorities="cz.optimization.odpadky"
-            android:exported="false" />
-
         <receiver android:name="cz.optimization.odpadky.ui.TrashbinAppWidgetProvider" >
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="android.appwidget.action.GLASS_BUTTON" />
+                <action android:name="android.appwidget.action.CLEAR_GLASS_BUTTON" />
                 <action android:name="android.appwidget.action.METAL_BUTTON" />
+                <action android:name="android.appwidget.action.PLASTIC_BUTTON" />
+                <action android:name="android.appwidget.action.PAPER_BUTTON" />
+                <action android:name="android.appwidget.action.CARTON_BUTTON" />
+                <action android:name="android.appwidget.action.ELECTRICAL_BUTTON" />
             </intent-filter>
             <meta-data android:name="android.appwidget.provider"
                 android:resource="@xml/trashbin_appwidget_info" />

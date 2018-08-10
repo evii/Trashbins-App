@@ -1,6 +1,7 @@
 package cz.optimization.odpadky;
 
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -11,6 +12,8 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -19,6 +22,8 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.signin.internal.SignInRequest;
+import com.google.android.gms.signin.internal.SignInResponse;
 import com.google.gson.Gson;
 import com.google.maps.android.clustering.Cluster;
 import com.google.maps.android.clustering.ClusterManager;
@@ -30,7 +35,6 @@ import cz.optimization.odpadky.objects.Container;
 import cz.optimization.odpadky.retrofit_data.APIClient;
 import cz.optimization.odpadky.retrofit_data.GetDataService;
 import cz.optimization.odpadky.objects.Place;
-import cz.optimization.odpadky.del.TrashbinDbHelper;
 import cz.optimization.odpadky.ui.DetailActivity;
 import cz.optimization.odpadky.ui.TrashbinAppWidgetProvider;
 import cz.optimization.odpadky.ui.clusters.CustomClusterRenderer;
@@ -42,17 +46,15 @@ import retrofit2.Response;
 
 
 // TODO Layout Detail Activity
+// TODO zkontroluj info window
 // TODO Zkontroluj update dialogu watched places
 // TODO Pridej funkci show pro polozku dialogu - watched list
 // TODO Pridej Delete function listu watched places
 // TODO zmena barvy markeru dle typu odpadu
-// TODO progress bar pro otvirani lokaci
-// TODO funkce widgetu - aby otevrel pouze vybranou kategorii kontejneru
 // TODO saved instance po zmene orientace - vsude
 // TODO sipka zpet v Detail ASctivity - funkce
 // TODO otevreni dle aktualni lokace - vysvetleni pro reviewera
 // TODO transition between activities
-
 
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback,
@@ -75,6 +77,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private static final String TAG = "MapsActivity";
 
+    private ProgressBar mProgressBar;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -95,6 +99,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         } else {
             previousPosition = position;
         }
+
+        mProgressBar = findViewById(R.id.progress_bar);
     }
 
     @Override
@@ -158,32 +164,73 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         float zoomLevel = 15.5f; //This goes up to 21
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(50.0889853530001, 14.4723441130001), zoomLevel));
 
-
+        //WIGDET - display correct containers afre clicking from the widget
         String widgetClicked = "";
         Bundle extras = getIntent().getExtras();
-        if(extras == null) {
-            widgetClicked= null;
+        if (extras == null) {
+            widgetClicked = null;
             onPositiveClick(previousPosition);
         } else {
-            widgetClicked= extras.getString("widget_clicked");
+            widgetClicked = extras.getString(TrashbinAppWidgetProvider.WIDGET_CLICKED_KEY);
 
-            if (widgetClicked.equals(TrashbinAppWidgetProvider.METAL_BUTTON)){
-                Log.v("Widgetwigd",widgetClicked+" "+ TrashbinAppWidgetProvider.METAL_BUTTON );
-                mMap.clear();
-                setTitle(R.string.metal_title);
-                position = 3;
+            switch (widgetClicked) {
+                case TrashbinAppWidgetProvider.GLASS_BUTTON:
+                    mMap.clear();
+                    setTitle(R.string.glass_title);
+                    position = 1;
+                    fetchContainersType(getResources().getString(R.string.glass));
+                    break;
 
-                fetchContainersType(getResources().getString(R.string.metal));
+                case TrashbinAppWidgetProvider.CLEAR_GLASS_BUTTON:
+                    mMap.clear();
+                    setTitle(R.string.clear_glass_title);
+                    position = 2;
+                    fetchContainersType(getResources().getString(R.string.clear_glass));
+                    break;
 
-               // mClusterManager.cluster();
+                case TrashbinAppWidgetProvider.METAL_BUTTON:
+                    mMap.clear();
+                    setTitle(R.string.metal_title);
+                    position = 3;
+                    fetchContainersType(getResources().getString(R.string.metal));
+                    break;
+
+                case TrashbinAppWidgetProvider.PLASTIC_BUTTON:
+                    mMap.clear();
+                    setTitle(R.string.plastic_title);
+                    position = 4;
+                    fetchContainersType(getResources().getString(R.string.plastic));
+                    break;
+
+                case TrashbinAppWidgetProvider.PAPER_BUTTON:
+                    mMap.clear();
+                    setTitle(R.string.paper_title);
+                    position = 5;
+                    fetchContainersType(getResources().getString(R.string.paper));
+                    break;
+
+                case TrashbinAppWidgetProvider.CARTON_BUTTON:
+                    mMap.clear();
+                    setTitle(R.string.carton_title);
+                    position = 6;
+                    fetchContainersType(getResources().getString(R.string.carton));
+                    break;
+
+                case TrashbinAppWidgetProvider.ELECTRICAL_BUTTON:
+                    mMap.clear();
+                    setTitle(R.string.electrical_title);
+                    position = 7;
+                    fetchContainersType(getResources().getString(R.string.electrical));
+                    break;
+
             }
         }
     }
 
+    //Filter in action bar
     @Override
     public void onPositiveClick(int position) {
         this.position = position;
-
 
 
         switch (position) {
@@ -192,54 +239,51 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 mMap.clear();
                 fetchPlaces();
 
-
                 break;
             case 1:
                 setTitle(R.string.glass_title);
                 mMap.clear();
                 fetchContainersType(getResources().getString(R.string.glass));
-
                 break;
+
             case 2:
                 setTitle(R.string.clear_glass_title);
                 mMap.clear();
                 fetchContainersType(getResources().getString(R.string.clear_glass));
-
                 break;
+
             case 3:
                 setTitle(R.string.metal_title);
                 mMap.clear();
                 fetchContainersType(getResources().getString(R.string.metal));
-
                 break;
+
             case 4:
                 setTitle(R.string.plastic_title);
                 mMap.clear();
                 fetchContainersType(getResources().getString(R.string.plastic));
-
                 break;
+
             case 5:
                 setTitle(R.string.paper_title);
                 mMap.clear();
                 fetchContainersType(getResources().getString(R.string.paper));
-
                 break;
+
             case 6:
                 setTitle(R.string.carton_title);
                 mMap.clear();
                 fetchContainersType(getResources().getString(R.string.carton));
-
                 break;
 
             case 7:
                 setTitle(R.string.electrical_title);
                 mMap.clear();
                 fetchContainersType(getResources().getString(R.string.electrical));
-
                 break;
 
         }
-     //   mClusterManager.cluster();
+        //   mClusterManager.cluster();
 
     }
 
@@ -252,8 +296,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         String containersList = "";
         if (sharedPreferences.contains(PREFS_KEY)) {
             containersList = sharedPreferences.getString(PREFS_KEY, "");
-        }
-        else {
+        } else {
             Log.d(TAG, "ContainersList not contained in Shared preferences");
         }
 
@@ -266,6 +309,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     // helper method to get the places from the API - using retrofit + seting onclicklisteners on markers
     public void fetchPlaces() {
+        mProgressBar.setVisibility(View.VISIBLE);
+        mProgressBar.setIndeterminate(true);
 
         GetDataService service = APIClient.getClient().create(GetDataService.class);
         Call<List<Place>> call = service.getAllPlaces();
@@ -296,7 +341,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                             @Override
                             public boolean onClusterItemClick(TrashbinClusterItem clusterItem) {
 
-                                trashbinClusterItem =clusterItem;
+                                trashbinClusterItem = clusterItem;
 
 
                                 //get marker from clusterItem
@@ -308,20 +353,20 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                                 editor.putString("placeid", placeId);
                                 editor.commit();
 
-
                                 //get Containers for given placeId
                                 fetchContainersAtPlace(placeId);
-
 
                                 return false;
                             }
                         });
 
+
+                mProgressBar.setVisibility(View.GONE);
             }
 
             @Override
             public void onFailure(Call<List<Place>> call, Throwable t) {
-
+                mProgressBar.setVisibility(View.GONE);
                 Toast.makeText(MapsActivity.this, R.string.No_internet_connection, Toast.LENGTH_LONG).show();
             }
         });
@@ -354,6 +399,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     // helper method to get details of containers in a place
     private void fetchContainersAtPlace(String placeId) {
+        mProgressBar.setVisibility(View.VISIBLE);
+        mProgressBar.setIndeterminate(true);
 
         GetDataService service = APIClient.getClient().create(GetDataService.class);
         Call<Container.ContainersResult> call = service.getContainersList(placeId);
@@ -361,7 +408,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public void onResponse(Call<Container.ContainersResult> call, Response<Container.ContainersResult> response) {
                 int urlResp = response.code();
-                Log.v ("URLCODE", String.valueOf(urlResp));
+                Log.v("URLCODE", String.valueOf(urlResp));
 
                 List<Container> containers = response.body().getResults();
 
@@ -377,13 +424,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 Marker marker = renderer.getMarker(trashbinClusterItem);
                 marker.setTag(containersString);
                 marker.showInfoWindow();
-
+                mProgressBar.setVisibility(View.GONE);
 
             }
 
             @Override
             public void onFailure(Call<Container.ContainersResult> call, Throwable t) {
-
+                mProgressBar.setVisibility(View.GONE);
                 Toast.makeText(MapsActivity.this, R.string.No_internet_connection, Toast.LENGTH_LONG).show();
             }
         });
@@ -391,25 +438,28 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     // helper method to display containers of selected type
     public void fetchContainersType(final String trashTypeSelected) {
+        mProgressBar.setVisibility(View.VISIBLE);
+        mProgressBar.setIndeterminate(true);
+
         GetDataService service = APIClient.getClient().create(GetDataService.class);
-if( mListPlaces == null) {
+        if (mListPlaces == null) {
 
-    Call<List<Place>> call1 = service.getAllPlaces();
-    call1.enqueue(new Callback<List<Place>>() {
-        @Override
-        public void onResponse(Call<List<Place>> call, Response<List<Place>> response) {
-            mListPlaces = response.body();
+            Call<List<Place>> call1 = service.getAllPlaces();
+            call1.enqueue(new Callback<List<Place>>() {
+                @Override
+                public void onResponse(Call<List<Place>> call, Response<List<Place>> response) {
+                    mListPlaces = response.body();
+                }
+
+                @Override
+                public void onFailure(Call<List<Place>> call, Throwable t) {
+                    mProgressBar.setVisibility(View.GONE);
+                    Toast.makeText(MapsActivity.this, R.string.No_internet_connection, Toast.LENGTH_LONG).show();
+                }
+            });
         }
 
-        @Override
-        public void onFailure(Call<List<Place>> call, Throwable t) {
-
-            Toast.makeText(MapsActivity.this, R.string.No_internet_connection, Toast.LENGTH_LONG).show();
-        }
-    });
-}
-
- Call<List<Container>> call2 = service.getContainersTypes();
+        Call<List<Container>> call2 = service.getContainersTypes();
         call2.enqueue(new Callback<List<Container>>() {
             @Override
             public void onResponse(Call<List<Container>> call, Response<List<Container>> response) {
@@ -452,11 +502,12 @@ if( mListPlaces == null) {
                 mClusterManager.addItems(getContainersLocation(containerCoordinatesList));
                 Log.v("containRetro contCoord", String.valueOf(containerCoordinatesList.size()));
                 mClusterManager.cluster();
+                mProgressBar.setVisibility(View.GONE);
             }
 
             @Override
             public void onFailure(Call<List<Container>> call, Throwable t) {
-
+                mProgressBar.setVisibility(View.GONE);
                 Toast.makeText(MapsActivity.this, R.string.No_internet_connection, Toast.LENGTH_LONG).show();
             }
         });
