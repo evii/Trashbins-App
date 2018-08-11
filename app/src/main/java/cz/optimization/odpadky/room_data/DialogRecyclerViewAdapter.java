@@ -32,8 +32,12 @@ public class DialogRecyclerViewAdapter extends RecyclerView.Adapter<DialogRecycl
         PlaceWatched placeWatched = mPlacesList.get(position);
 
         holder.itemTextView.setText(placeWatched.getTitle());
-        holder.itemView.setTag(placeWatched);
+        String placeId = placeWatched.getPlaceId();
+        holder.itemView.setTag(placeId);
         holder.itemView.setOnClickListener(mClickListener);
+
+
+
     }
 
     @Override
@@ -49,6 +53,7 @@ public class DialogRecyclerViewAdapter extends RecyclerView.Adapter<DialogRecycl
 
     static class RecyclerViewHolder extends RecyclerView.ViewHolder {
         private TextView itemTextView;
+
 
         RecyclerViewHolder(View view) {
             super(view);

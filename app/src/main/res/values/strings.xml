@@ -47,6 +47,9 @@
     <string name="watched">Watched</string>
     <string name="watch_list">Places added to watch list</string>
 
-    <string name="widget_title">Prague trash bins by type:</string>
+    <string name="widget_title">Trash bins by type:</string>
+    <string name="Action_add_to_watch">This place was added to Watched places</string>
+    <string name="Action_delete_from_watch">This place was removed from Watched places</string>
+
 
 </resources>

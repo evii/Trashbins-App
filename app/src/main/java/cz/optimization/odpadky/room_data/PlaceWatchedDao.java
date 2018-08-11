@@ -21,7 +21,7 @@ public interface PlaceWatchedDao {
         void insertMultiplePlaces (List<PlaceWatched> placesList);
 
         @Query("select * from PlaceWatched WHERE mPlaceId = :placeId")
-        PlaceWatched fetchOnePlacebyPlaceId (int placeId);
+        PlaceWatched fetchOnePlacebyPlaceId (String placeId);
 
         @Query("select * from PlaceWatched")
         LiveData<List<PlaceWatched>> fetchAllPlaces();
@@ -31,6 +31,9 @@ public interface PlaceWatchedDao {
 
         @Delete
         void deletePlace (PlaceWatched placeWatched);
+
+        @Query("DELETE FROM PlaceWatched WHERE mPlaceId = :placeId")
+        int deleteByPlaceId(String placeId);
     }
 
 

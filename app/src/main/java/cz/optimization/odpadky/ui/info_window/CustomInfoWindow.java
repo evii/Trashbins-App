@@ -87,6 +87,7 @@ public class CustomInfoWindow implements GoogleMap.InfoWindowAdapter {
                     TextView trashTypeTV = new TextView(mContext);
                     TextView progressTV = new TextView(mContext);
                     String trashType = listItem.getTrashType();
+                    trashType = trashType.substring(0,1).toUpperCase() + trashType.substring(1);
                     trashType = trashType.replace("_"," ");
                     trashTypeTV.setText(trashType);
                     trashTypeTV.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);

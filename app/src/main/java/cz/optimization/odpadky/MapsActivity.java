@@ -45,13 +45,11 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 
-// TODO Layout Detail Activity
-// TODO Zkontroluj update dialogu watched places
-// TODO Pridej funkci show pro polozku dialogu - watched list
-// TODO Pridej Delete function listu watched places
-// TODO zmena barvy markeru dle typu odpadu
-// TODO saved instance po zmene orientace - vsude
+
+// TODO Zkontroluj update dialogu watched places po Delete
 // TODO sipka zpet v Detail ASctivity - funkce
+// TODO saved instance po zmene orientace - vsude
+// TODO zmena barvy markeru dle typu odpadu
 // TODO otevreni dle aktualni lokace - vysvetleni pro reviewera
 // TODO transition between activities
 
@@ -433,6 +431,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mProgressBar.setIndeterminate(true);
         mMap.clear();
 
+
+
         GetDataService service = APIClient.getClient().create(GetDataService.class);
 
         if (mListPlaces == null) {
@@ -478,13 +478,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         Place selectedPlace = allPlacesMap.get(placeId);
                         double lat = selectedPlace.getLatitude();
                         double lng = selectedPlace.getLongitude();
+                        String title = selectedPlace.getTitle();
 
                         int binId = container.getBinId();
                         String underground = container.getUnderground();
                         String cleaning = container.getCleaning();
                         int progress = container.getProgress();
 
-                        Container containerCoordinates = new Container(placeId, trashType, binId, underground, cleaning, progress, lat, lng);
+                        Container containerCoordinates = new Container(placeId, trashType, binId, underground, cleaning, progress, lat, lng, title);
                         containerCoordinatesList.add(containerCoordinates);
                     }
                 }
@@ -550,7 +551,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         List<TrashbinClusterItem> ListItems = new ArrayList<>();
 
         int locationCount = containers.size();
-        String trashType = "";
+        String title = "";
         double lat = 0;
         double lng = 0;
         String placeId = "";
@@ -560,11 +561,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             lat = container.getLatitude();
             lng = container.getLongitude();
-            trashType = container.getTrashType();
+            title = container.getTitle();
             placeId = String.valueOf(container.getPlaceId());
 
             // Adding the marker to the List
-            ListItems.add(new TrashbinClusterItem(lat, lng, trashType, placeId));
+            ListItems.add(new TrashbinClusterItem(lat, lng, title, placeId));
         }
         return ListItems;
     }

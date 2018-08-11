@@ -38,6 +38,7 @@ public class Container {
 
     private double mLatitude;
     private double mLongitude;
+    private String mTitle;
 
 
 
@@ -50,7 +51,7 @@ public class Container {
         mProgress = progress;
     }
 
-    public Container(String placeId, String trashType, int binId, String underground, String cleaning, int progress, double lat, double lng) {
+    public Container(String placeId, String trashType, int binId, String underground, String cleaning, int progress, double lat, double lng, String title) {
         mPlaceId = placeId;
         mTrashType = trashType;
         mBinId = binId;
@@ -59,6 +60,7 @@ public class Container {
         mProgress = progress;
         mLatitude = lat;
         mLongitude = lng;
+        mTitle = title;
 
     }
 
@@ -94,6 +96,9 @@ public class Container {
 
     public void setLongitude(double lng) { lng = mLongitude; }
 
+    public String getTitle() {
+        return mTitle;
+    }
 
 
     public static class ContainersResult {

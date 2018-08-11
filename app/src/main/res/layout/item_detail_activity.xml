@@ -3,7 +3,10 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="horizontal">
+    android:orientation="horizontal"
+    android:layout_marginTop="@dimen/detail_item_top_bottom_margin"
+    android:layout_marginRight="@dimen/detail_item_left_right_margin"
+    android:layout_marginLeft="@dimen/detail_item_left_right_margin">
 
     <LinearLayout
         android:layout_width="0dp"
@@ -15,14 +18,16 @@
             android:id="@+id/trash_type_tv"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:textSize="@dimen/detail_text"
             tools:text="plastic" />
 
         <TextView
             android:id="@+id/percentage_tv"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            tools:text="50%"
-            android:textSize="@dimen/percentage_text"/>
+            android:textSize="@dimen/detail_perc_text"
+            android:textStyle="bold"
+            tools:text="50%"/>
 
     </LinearLayout>
 
@@ -31,6 +36,7 @@
         android:layout_width="0dp"
         android:layout_weight="1"
         android:layout_height="wrap_content"
+        android:textSize="@dimen/detail_perc_text"
         tools:text="2xweek" />
 
     <TextView
@@ -38,6 +44,8 @@
         android:layout_width="0dp"
         android:layout_weight="1"
         android:layout_height="wrap_content"
+        android:textSize="@dimen/detail_perc_text"
+        android:textStyle="italic"
         tools:text="above-ground" />
 
 </LinearLayout>

@@ -4,7 +4,12 @@
     <dimen name="app_bar_height">180dp</dimen>
     <dimen name="fab_margin">16dp</dimen>
     <dimen name="text_margin">16dp</dimen>
-    <dimen name="ad_margin">16dp</dimen>
-    <dimen name="percentage_text">12sp</dimen>
-    <dimen name="detail_recycler_view_margin">8dp</dimen>
+    <dimen name="ad_margin">24dp</dimen>
+    <dimen name="detail_recycler_view_margin">24dp</dimen>
+    <dimen name="detail_text">20sp</dimen>
+    <dimen name="detail_perc_text">16sp</dimen>
+    <dimen name="detail_item_top_bottom_margin">12dp</dimen>
+    <dimen name="detail_item_left_right_margin">12dp</dimen>
+
+
 </resources>
