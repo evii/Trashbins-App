@@ -10,13 +10,13 @@ import java.util.List;
 
 import cz.optimization.odpadky.R;
 
-public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.RecyclerViewHolder> {
+public class DialogRecyclerViewAdapter extends RecyclerView.Adapter<DialogRecyclerViewAdapter.RecyclerViewHolder> {
 
     private List<PlaceWatched> mPlacesList;
     private View.OnClickListener mClickListener;
 
 
-    public RecyclerViewAdapter(List<PlaceWatched> placesWatchedList, View.OnClickListener clickListener) {
+    public DialogRecyclerViewAdapter(List<PlaceWatched> placesWatchedList, View.OnClickListener clickListener) {
         mPlacesList = placesWatchedList;
         mClickListener = clickListener;
     }
@@ -24,7 +24,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
     @Override
     public RecyclerViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         return new RecyclerViewHolder(LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.place_watched_item, parent, false));
+                .inflate(R.layout.item_place_watched, parent, false));
     }
 
     @Override

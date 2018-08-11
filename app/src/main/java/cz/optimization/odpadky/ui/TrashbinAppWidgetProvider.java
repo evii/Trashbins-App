@@ -5,7 +5,6 @@ import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
 import android.content.Context;
 import android.content.Intent;
-import android.util.Log;
 import android.widget.RemoteViews;
 
 import cz.optimization.odpadky.MapsActivity;
@@ -35,29 +34,29 @@ public class TrashbinAppWidgetProvider extends AppWidgetProvider {
             PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, 0);
 
             Intent intentGlass = new Intent(GLASS_BUTTON);
-            PendingIntent pendingIntentGlass = PendingIntent.getBroadcast(context, 1, intentGlass, PendingIntent.FLAG_UPDATE_CURRENT);
+            PendingIntent pendingIntentGlass = PendingIntent.getBroadcast(context, 0, intentGlass, PendingIntent.FLAG_UPDATE_CURRENT);
 
             Intent intentClearGlass = new Intent(CLEAR_GLASS_BUTTON);
-            PendingIntent pendingIntentClearGlass = PendingIntent.getBroadcast(context, 2, intentClearGlass, PendingIntent.FLAG_UPDATE_CURRENT);
+            PendingIntent pendingIntentClearGlass = PendingIntent.getBroadcast(context, 0, intentClearGlass, PendingIntent.FLAG_UPDATE_CURRENT);
 
             Intent intentMetal = new Intent(METAL_BUTTON);
-            PendingIntent pendingIntentMetal = PendingIntent.getBroadcast(context, 3, intentMetal, PendingIntent.FLAG_UPDATE_CURRENT);
+            PendingIntent pendingIntentMetal = PendingIntent.getBroadcast(context, 0, intentMetal, PendingIntent.FLAG_UPDATE_CURRENT);
 
             Intent intentPlastic = new Intent(PLASTIC_BUTTON);
-            PendingIntent pendingIntentPlastic = PendingIntent.getBroadcast(context, 4, intentPlastic, PendingIntent.FLAG_UPDATE_CURRENT);
+            PendingIntent pendingIntentPlastic = PendingIntent.getBroadcast(context, 0, intentPlastic, PendingIntent.FLAG_UPDATE_CURRENT);
 
             Intent intentPaper = new Intent(PAPER_BUTTON);
-            PendingIntent pendingIntentPaper = PendingIntent.getBroadcast(context, 5, intentPaper, PendingIntent.FLAG_UPDATE_CURRENT);
+            PendingIntent pendingIntentPaper = PendingIntent.getBroadcast(context, 0, intentPaper, PendingIntent.FLAG_UPDATE_CURRENT);
 
             Intent intentCarton = new Intent(CARTON_BUTTON);
-            PendingIntent pendingIntentCarton = PendingIntent.getBroadcast(context, 6, intentCarton, PendingIntent.FLAG_UPDATE_CURRENT);
+            PendingIntent pendingIntentCarton = PendingIntent.getBroadcast(context, 0, intentCarton, PendingIntent.FLAG_UPDATE_CURRENT);
 
             Intent intentElectrical = new Intent(ELECTRICAL_BUTTON);
-            PendingIntent pendingIntentElectrical = PendingIntent.getBroadcast(context, 7, intentElectrical, PendingIntent.FLAG_UPDATE_CURRENT);
+            PendingIntent pendingIntentElectrical = PendingIntent.getBroadcast(context, 0, intentElectrical, PendingIntent.FLAG_UPDATE_CURRENT);
 
             // Get the layout for the App Widget and attach an on-click listener
             // to the textviews
-            RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.trashbin_appwidget);
+            RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.appwidget_trashbin);
             views.setOnClickPendingIntent(R.id.all_containers_tv, pendingIntent);
             views.setOnClickPendingIntent(R.id.glass_containers_tv, pendingIntentGlass);
             views.setOnClickPendingIntent(R.id.clear_glass_containers_tv, pendingIntentClearGlass);

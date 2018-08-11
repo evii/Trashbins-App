@@ -5,6 +5,8 @@ import android.content.Context;
 
 import android.content.SharedPreferences;
 
+import android.graphics.Typeface;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
@@ -44,28 +46,28 @@ public class CustomInfoWindow implements GoogleMap.InfoWindowAdapter {
     @Override
     public View getInfoContents(Marker marker) {
 
-        LayoutInflater inflater = (LayoutInflater) mContext.getSystemService( Context.LAYOUT_INFLATER_SERVICE );
+        // inflates layout
+        LayoutInflater inflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View popup = inflater.inflate(R.layout.info_window, null);
         LinearLayout view = (LinearLayout) popup;
 
-        TextView text_tv = popup.findViewById(R.id.info_text);
-        text_tv.setText(marker.getTitle());
-
+        // gets details on containers from sharedpreferences in String - sent from MapsActivity
         String containersList = "";
         SharedPreferences sharedpreferences = mContext.getSharedPreferences(MapsActivity.PREFS_NAME,
                 Context.MODE_PRIVATE);
         if (sharedpreferences.contains(MapsActivity.PREFS_KEY)) {
             containersList = sharedpreferences.getString(MapsActivity.PREFS_KEY, "");
-        }
-        else {
+        } else {
             Log.d(TAG, "ContainersList not contained in Shared preferences");
         }
 
+        // converts String to list of containers
         Type type = new TypeToken<List<Container>>() {
         }.getType();
         Gson gson = new Gson();
         List<Container> containers = gson.fromJson(containersList, type);
 
+        // creates view and populate them with data
         if (containers != null) {
             if (containers.size() > 0) {
 
@@ -74,40 +76,51 @@ public class CustomInfoWindow implements GoogleMap.InfoWindowAdapter {
                         LinearLayout.LayoutParams.WRAP_CONTENT);
                 params.setMargins(10, 0, 10, 0);
 
-                    for (Container listItem : containers) {
+                for (Container listItem : containers) {
 
-                        // horizontal Linear Layout for one item
-                        LinearLayout itemLayout = new LinearLayout(mContext);
-                        itemLayout.setLayoutParams(params);
-                        params.setMargins(10, 0, 10, 0);
-                        itemLayout.setOrientation(LinearLayout.HORIZONTAL);
+                    // horizontal Linear Layout for one item
+                    LinearLayout itemLayout = new LinearLayout(mContext);
+                    itemLayout.setLayoutParams(params);
+                    params.setMargins(10, 0, 10, 0);
+                    itemLayout.setOrientation(LinearLayout.HORIZONTAL);
 
-                        TextView trashTypeTV = new TextView(mContext);
-                        TextView progressTV = new TextView(mContext);
-                        trashTypeTV.setText(listItem.getTrashType());
-                        trashTypeTV.setTextSize(18f);
-                        int progress = listItem.getProgress();
-                        String progressString = String.valueOf(progress)+ " %";
-                        progressTV.setText(progressString);
-                        progressTV.setTextSize(12f);
-                        LinearLayout.LayoutParams fixed_width = new LinearLayout.LayoutParams(
-                                LinearLayout.LayoutParams.WRAP_CONTENT,
-                                LinearLayout.LayoutParams.WRAP_CONTENT);
-                        // setting fixed width for trash label in dp
-                        fixed_width.width = (int) TypedValue.applyDimension(
-                                TypedValue.COMPLEX_UNIT_DIP, 150 , mContext.getResources()
-                                        .getDisplayMetrics());
+                    TextView trashTypeTV = new TextView(mContext);
+                    TextView progressTV = new TextView(mContext);
+                    String trashType = listItem.getTrashType();
+                    trashType = trashType.replace("_"," ");
+                    trashTypeTV.setText(trashType);
+                    trashTypeTV.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
+                    int progress = listItem.getProgress();
+                    String progressString = String.valueOf(progress) + " %";
+                    progressTV.setText(progressString);
+                    progressTV.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+                    progressTV.setTypeface(null, Typeface.BOLD);
 
-                        trashTypeTV.setLayoutParams(fixed_width);
-                        progressTV.setLayoutParams(params);
-                        itemLayout.addView(trashTypeTV);
-                        itemLayout.addView(progressTV);
-                        view.addView(itemLayout);
-                    }
+                    if (progress > 90) {
+                        progressTV.setTextColor(ContextCompat.getColor(mContext, R.color.colorRed));
+                    } else if (progress < 50) {
+                        progressTV.setTextColor(ContextCompat.getColor(mContext, R.color.colorGreen));
+                    } else
+                        progressTV.setTextColor(ContextCompat.getColor(mContext, R.color.colorOrange));
+
+                    LinearLayout.LayoutParams fixed_width = new LinearLayout.LayoutParams(
+                            LinearLayout.LayoutParams.WRAP_CONTENT,
+                            LinearLayout.LayoutParams.WRAP_CONTENT);
+                    // setting fixed width for trash label in dp
+                    fixed_width.width = (int) TypedValue.applyDimension(
+                            TypedValue.COMPLEX_UNIT_DIP, 150, mContext.getResources()
+                                    .getDisplayMetrics());
+
+                    trashTypeTV.setLayoutParams(fixed_width);
+                    progressTV.setLayoutParams(params);
+                    itemLayout.addView(trashTypeTV);
+                    itemLayout.addView(progressTV);
+                    view.addView(itemLayout);
                 }
             }
-
-            return popup;
         }
 
+        return popup;
     }
+
+}

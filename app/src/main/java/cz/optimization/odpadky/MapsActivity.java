@@ -46,7 +46,6 @@ import retrofit2.Response;
 
 
 // TODO Layout Detail Activity
-// TODO zkontroluj info window
 // TODO Zkontroluj update dialogu watched places
 // TODO Pridej funkci show pro polozku dialogu - watched list
 // TODO Pridej Delete function listu watched places
@@ -124,7 +123,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         int id = item.getItemId();
 
         if (id == R.id.action_filtr) {
-
             FragmentManager fm = getSupportFragmentManager();
             SelectTrashbinTypeDialogFragment dialog = new SelectTrashbinTypeDialogFragment();
 
@@ -136,7 +134,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             // Setting the bundle object to the dialog fragment object
             dialog.setArguments(b);
-
             dialog.show(fm, "dialog");
             return true;
         }
@@ -164,7 +161,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         float zoomLevel = 15.5f; //This goes up to 21
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(50.0889853530001, 14.4723441130001), zoomLevel));
 
-        //WIGDET - display correct containers afre clicking from the widget
+        //WIGDET - display correct containers after clicking from the widget
         String widgetClicked = "";
         Bundle extras = getIntent().getExtras();
         if (extras == null) {
@@ -232,53 +229,44 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onPositiveClick(int position) {
         this.position = position;
 
-
         switch (position) {
             case 0:
                 setTitle(R.string.all_title);
-                mMap.clear();
                 fetchPlaces();
-
                 break;
+
             case 1:
                 setTitle(R.string.glass_title);
-                mMap.clear();
                 fetchContainersType(getResources().getString(R.string.glass));
                 break;
 
             case 2:
                 setTitle(R.string.clear_glass_title);
-                mMap.clear();
                 fetchContainersType(getResources().getString(R.string.clear_glass));
                 break;
 
             case 3:
                 setTitle(R.string.metal_title);
-                mMap.clear();
                 fetchContainersType(getResources().getString(R.string.metal));
                 break;
 
             case 4:
                 setTitle(R.string.plastic_title);
-                mMap.clear();
                 fetchContainersType(getResources().getString(R.string.plastic));
                 break;
 
             case 5:
                 setTitle(R.string.paper_title);
-                mMap.clear();
                 fetchContainersType(getResources().getString(R.string.paper));
                 break;
 
             case 6:
                 setTitle(R.string.carton_title);
-                mMap.clear();
                 fetchContainersType(getResources().getString(R.string.carton));
                 break;
 
             case 7:
                 setTitle(R.string.electrical_title);
-                mMap.clear();
                 fetchContainersType(getResources().getString(R.string.electrical));
                 break;
 
@@ -309,8 +297,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     // helper method to get the places from the API - using retrofit + seting onclicklisteners on markers
     public void fetchPlaces() {
+
         mProgressBar.setVisibility(View.VISIBLE);
         mProgressBar.setIndeterminate(true);
+        mMap.clear();
 
         GetDataService service = APIClient.getClient().create(GetDataService.class);
         Call<List<Place>> call = service.getAllPlaces();
@@ -319,7 +309,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             public void onResponse(Call<List<Place>> call, Response<List<Place>> response) {
 
                 mListPlaces = response.body();
-
+                mClusterManager.clearItems();
                 mClusterManager.addItems(getPlaceLocation(mListPlaces));
                 mClusterManager.cluster();
 
@@ -438,10 +428,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     // helper method to display containers of selected type
     public void fetchContainersType(final String trashTypeSelected) {
+
         mProgressBar.setVisibility(View.VISIBLE);
         mProgressBar.setIndeterminate(true);
+        mMap.clear();
 
         GetDataService service = APIClient.getClient().create(GetDataService.class);
+
         if (mListPlaces == null) {
 
             Call<List<Place>> call1 = service.getAllPlaces();
@@ -465,8 +458,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             public void onResponse(Call<List<Container>> call, Response<List<Container>> response) {
 
                 List<Container> allContainersList = response.body();
-                int urlResp = response.code();
-                Log.v("containRetro allCont: ", String.valueOf(allContainersList.size()) + " " + String.valueOf(urlResp));
 
                 //covert list of places with coordinates into array map
                 ArrayMap<String, Place> allPlacesMap = new ArrayMap<String, Place>();
@@ -474,7 +465,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     allPlacesMap.put(place.getPlaceId(), place);
                 }
                 Log.v("containRetro mListP: ", String.valueOf(mListPlaces.size()));
-
 
                 // create new containers list with coordinates
                 List<Container> containerCoordinatesList = new ArrayList<Container>();
@@ -498,10 +488,52 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         containerCoordinatesList.add(containerCoordinates);
                     }
                 }
-
+                mClusterManager.clearItems();
                 mClusterManager.addItems(getContainersLocation(containerCoordinatesList));
                 Log.v("containRetro contCoord", String.valueOf(containerCoordinatesList.size()));
                 mClusterManager.cluster();
+
+
+                // onclick listener for cluster
+                mClusterManager.setOnClusterClickListener(
+                        new ClusterManager.OnClusterClickListener<TrashbinClusterItem>() {
+                            @Override
+                            public boolean onClusterClick(Cluster<TrashbinClusterItem> cluster) {
+
+                                Toast.makeText(MapsActivity.this, R.string.Cluster_click, Toast.LENGTH_SHORT).show();
+                                return false;
+                            }
+                        });
+
+                // onclicklistener for marker
+                mClusterManager.setOnClusterItemClickListener(
+                        new ClusterManager.OnClusterItemClickListener<TrashbinClusterItem>() {
+                            @Override
+                            public boolean onClusterItemClick(TrashbinClusterItem clusterItem) {
+
+                                trashbinClusterItem = clusterItem;
+
+                               //get marker from clusterItem
+                                String placeId = clusterItem.getSnippet();
+                                Log.v("JsonParseMAPS", placeId);
+
+                                SharedPreferences.Editor editor = sharedPreferences.edit();
+                                editor.putString("placeid", placeId);
+                                editor.commit();
+
+                                //get Containers for given placeId
+                                fetchContainersAtPlace(placeId);
+
+                                return false;
+                            }
+                        });
+
+
+
+
+
+
+
                 mProgressBar.setVisibility(View.GONE);
             }
 

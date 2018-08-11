@@ -1,8 +1,6 @@
 package cz.optimization.odpadky.ui;
 
-import android.app.Activity;
 import android.arch.lifecycle.Observer;
-import android.arch.lifecycle.ViewModel;
 import android.arch.lifecycle.ViewModelProviders;
 import android.arch.persistence.room.Room;
 import android.content.Intent;
@@ -10,7 +8,6 @@ import android.os.AsyncTask;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
-import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -21,53 +18,60 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ArrayAdapter;
-import android.widget.ListView;
 import android.widget.TextView;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.widget.Toast;
 
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
 import cz.optimization.odpadky.R;
-import cz.optimization.odpadky.SelectTrashbinTypeDialogFragment;
+import cz.optimization.odpadky.objects.Container;
 import cz.optimization.odpadky.room_data.PlaceWatched;
 import cz.optimization.odpadky.room_data.PlacesDatabase;
 import cz.optimization.odpadky.room_data.PlacesWatchedViewModel;
-import cz.optimization.odpadky.room_data.RecyclerViewAdapter;
+import cz.optimization.odpadky.room_data.DialogRecyclerViewAdapter;
 
 public class DetailActivity extends AppCompatActivity implements View.OnClickListener {
     private AdView mAdView;
 
     private String placeId;
     private String title;
-    private String containersList;
+    private String containersListString;
 
     private PlacesDatabase placesDatabase;
     private PlacesWatchedViewModel viewModel;
-    private RecyclerViewAdapter recyclerViewAdapter;
+    private DialogRecyclerViewAdapter recyclerViewAdapter;
+    private DetailActivityRecyclerViewAdapter detailActivityAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detail);
 
+        // gets data from MapsActivity as parent activity
         Intent intent = getIntent();
         placeId = intent.getStringExtra("placeId");
         title = intent.getStringExtra("title");
-        containersList = intent.getStringExtra("containersList");
+        containersListString = intent.getStringExtra("containersList");
 
-        TextView placeIdTv = findViewById(R.id.id_tv);
-        TextView detailTv = findViewById(R.id.detail_tv);
-        TextView listTv = findViewById(R.id.containers_tv);
+        Type type = new TypeToken<List<Container>>() {
+        }.getType();
+        Gson gson = new Gson();
+        List<Container> containersList = gson.fromJson(containersListString, type);
 
-        placeIdTv.setText(placeId);
-        detailTv.setText(title);
-        listTv.setText(containersList);
+        //recyclerview for containers
+        RecyclerView detailRecyclerView = findViewById(R.id.detail_recycler_view);
+        detailRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        detailActivityAdapter = new DetailActivityRecyclerViewAdapter(containersList, this);
+
+        detailRecyclerView.setAdapter(detailActivityAdapter);
 
         mAdView = findViewById(R.id.adView);
         AdRequest adRequest = new AdRequest.Builder().build();
@@ -121,9 +125,9 @@ public class DetailActivity extends AppCompatActivity implements View.OnClickLis
             alertDialog.setView(convertView);
             alertDialog.setTitle(R.string.watch_list);
 
-            RecyclerView rv = convertView.findViewById(R.id.recycler_view);
-            rv.setLayoutManager(new LinearLayoutManager(this));
-            recyclerViewAdapter = new RecyclerViewAdapter(new ArrayList<PlaceWatched>(), this);
+            RecyclerView dialogRecyclerView = convertView.findViewById(R.id.recycler_view);
+            dialogRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+            recyclerViewAdapter = new DialogRecyclerViewAdapter(new ArrayList<PlaceWatched>(), this);
 
 
             viewModel = ViewModelProviders.of(this).get(PlacesWatchedViewModel.class);
@@ -135,7 +139,7 @@ public class DetailActivity extends AppCompatActivity implements View.OnClickLis
                 }
             });
 
-            rv.setAdapter(recyclerViewAdapter);
+            dialogRecyclerView.setAdapter(recyclerViewAdapter);
 
 
 
@@ -165,7 +169,7 @@ public class DetailActivity extends AppCompatActivity implements View.OnClickLis
         @Override
         protected Void doInBackground(Void... voids) {
             //Add place to db
-            PlaceWatched placeWatched = new PlaceWatched(placeId, title, containersList);
+            PlaceWatched placeWatched = new PlaceWatched(placeId, title, containersListString);
             placesDatabase.placesWatchedModel().insertSinglePlace(placeWatched);
             return null;
         }
