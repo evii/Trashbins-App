@@ -121,7 +121,6 @@ public class DetailActivity extends AppCompatActivity implements View.OnClickLis
             @Override
             public void onClick(View view) {
                 new DeletePlaceAsync().execute(mPlaceId);
-
                 Snackbar.make(view, R.string.Action_delete_from_watch, Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
             }
@@ -168,6 +167,7 @@ public class DetailActivity extends AppCompatActivity implements View.OnClickLis
                 @Override
                 public void onChanged(@Nullable List<PlaceWatched> watchList) {
                     recyclerViewAdapter.addItems(watchList);
+
                 }
             });
             mDialogRecyclerView.setAdapter(recyclerViewAdapter);
@@ -296,9 +296,9 @@ public class DetailActivity extends AppCompatActivity implements View.OnClickLis
         protected Void doInBackground(String... params) {
             // Query db for one place
             String placeId = params[0];
-            int noPlacesDeleted = placesDatabase.placesWatchedModel().deleteByPlaceId(placeId);
 
-            Log.v("isInWatchedDel", String.valueOf(noPlacesDeleted)+placeId);
+            placesDatabase.placesWatchedModel().deleteByPlaceId(placeId);
+
             return null;
         }
 
