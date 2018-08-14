@@ -32,8 +32,6 @@ public interface PlaceWatchedDao {
         @Delete
         void deletePlace (PlaceWatched placeWatched);
 
-        @Query("DELETE FROM PlaceWatched WHERE mPlaceId = :placeId")
-        int deleteByPlaceId(String placeId);
     }
 
 

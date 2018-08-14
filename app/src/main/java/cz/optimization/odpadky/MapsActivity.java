@@ -5,6 +5,7 @@ import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.ArrayMap;
@@ -44,9 +45,10 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-// TODO Zkontroluj update dialogu watched places po Delete
-// TODO sipka zpet v Detail ASctivity - funkce
+// TODO Zkontroluj otvreni z launcher
 // TODO saved instance po zmene orientace - vsude
+    //-watchedplacedialog ok
+
 // TODO zmena barvy markeru dle typu odpadu
 // TODO otevreni dle aktualni lokace - vysvetleni pro reviewera
 // TODO transition between activities
@@ -94,6 +96,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         } else {
             previousPosition = position;
         }
+
 
         mProgressBar = findViewById(R.id.progress_bar);
     }
@@ -163,8 +166,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (extras == null) {
             widgetClicked = null;
             onPositiveClick(previousPosition);
-        } else {
+        } else if (extras.getString(TrashbinAppWidgetProvider.WIDGET_CLICKED_KEY) != null) {
             widgetClicked = extras.getString(TrashbinAppWidgetProvider.WIDGET_CLICKED_KEY);
+
+            Log.v("widgetproblem", widgetClicked+"");
 
             switch (widgetClicked) {
                 case TrashbinAppWidgetProvider.GLASS_BUTTON:

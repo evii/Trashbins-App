@@ -6,10 +6,12 @@ import android.arch.lifecycle.ViewModelProviders;
 import android.arch.persistence.room.Room;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -41,7 +43,7 @@ import cz.optimization.odpadky.room_data.DialogRecyclerViewAdapter;
 
 import static android.view.View.GONE;
 
-public class DetailActivity extends AppCompatActivity implements View.OnClickListener {
+public class DetailActivity extends AppCompatActivity implements PlacesWatchedDialogFragment.NoticeDialogListener {
     private AdView mAdView;
 
     private String mPlaceId;
@@ -49,9 +51,7 @@ public class DetailActivity extends AppCompatActivity implements View.OnClickLis
     private String containersListString;
 
     private PlacesDatabase placesDatabase;
-    private PlacesWatchedViewModel viewModel;
-    private RecyclerView mDialogRecyclerView;
-    private DialogRecyclerViewAdapter recyclerViewAdapter;
+
     private DetailActivityRecyclerViewAdapter detailActivityAdapter;
 
     private PlaceWatched mPlaceWatched;
@@ -62,6 +62,9 @@ public class DetailActivity extends AppCompatActivity implements View.OnClickLis
     private FloatingActionButton fabAdd;
     private FloatingActionButton fabDelete;
 
+    private SharedPreferences preferences;
+
+
     private static final String TAG = "DetailActivity";
 
     @Override
@@ -70,10 +73,13 @@ public class DetailActivity extends AppCompatActivity implements View.OnClickLis
         setContentView(R.layout.activity_detail);
 
         // gets data from MapsActivity as parent activity
-        Intent intent = getIntent();
-        mPlaceId = intent.getStringExtra("placeId");
-        title = intent.getStringExtra("title");
-        containersListString = intent.getStringExtra("containersList");
+
+            Intent intent = getIntent();
+            mPlaceId = intent.getStringExtra("placeId");
+            title = intent.getStringExtra("title");
+            containersListString = intent.getStringExtra("containersList");
+
+
 
         Type type = new TypeToken<List<Container>>() {
         }.getType();
@@ -120,7 +126,10 @@ public class DetailActivity extends AppCompatActivity implements View.OnClickLis
         fabDelete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                new DeletePlaceAsync().execute(mPlaceId);
+                PlaceWatched placeWatchedtoDelete = new PlaceWatched(mPlaceId, title, containersListString);
+
+                new DeletePlaceAsync().execute(placeWatchedtoDelete);
+
                 Snackbar.make(view, R.string.Action_delete_from_watch, Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
             }
@@ -145,47 +154,32 @@ public class DetailActivity extends AppCompatActivity implements View.OnClickLis
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_watched) {
-
-            //Dialog for Watched Places
-            AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
-            LayoutInflater inflater = getLayoutInflater();
-            View convertView = inflater.inflate(R.layout.fragment_dialog_watched, null);
-            alertDialog.setView(convertView);
-            alertDialog.setTitle(R.string.watch_list);
-
-            alertDialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                public void onClick(DialogInterface dialog, int which) {
-                    dialog.cancel();
-                }
-            });
-
-            mDialogRecyclerView = convertView.findViewById(R.id.recycler_view);
-            mDialogRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-            recyclerViewAdapter = new DialogRecyclerViewAdapter(new ArrayList<PlaceWatched>(), this);
-            viewModel = ViewModelProviders.of(this).get(PlacesWatchedViewModel.class);
-            viewModel.getPlaceWatchedList().observe(DetailActivity.this, new Observer<List<PlaceWatched>>() {
-                @Override
-                public void onChanged(@Nullable List<PlaceWatched> watchList) {
-                    recyclerViewAdapter.addItems(watchList);
-
-                }
-            });
-            mDialogRecyclerView.setAdapter(recyclerViewAdapter);
-            dialog = alertDialog.show();
-
+            showAlertDialog();
             return true;
         }
         return super.onOptionsItemSelected(item);
     }
 
-    // method that handles on clicks from dialog's recycler view
-    @Override
-    public void onClick(View view) {
+    private void showAlertDialog() {
+        FragmentManager fm = getSupportFragmentManager();
+        PlacesWatchedDialogFragment dialog = PlacesWatchedDialogFragment.newInstance("DDD");
+        dialog.show(fm, "fragment_alert");
+    }
 
-        mPlaceId = (String) view.getTag();
-        new QueryOnePlaceAsync().execute(mPlaceId);
-        new QueryCheckPlacesAsync().execute(mPlaceId);
-        dialog.dismiss();
+    @Override
+    public void onDialogClick(PlaceWatched selectedPlaceWatched) {
+        String placeId = selectedPlaceWatched.getPlaceId();
+        new QueryOnePlaceAsync().execute(placeId);
+        mPlaceId = placeId;
+        title = selectedPlaceWatched.getTitle();
+        containersListString = selectedPlaceWatched.getContainersList();
+    }
+
+    @Override
+    public void onDialogClickCheck(PlaceWatched selectedPlaceWatched) {
+        String placeId = selectedPlaceWatched.getPlaceId();
+        new QueryCheckPlacesAsync().execute(placeId);
+
     }
 
     // helper method for insert into db Watched Places
@@ -212,6 +206,66 @@ public class DetailActivity extends AppCompatActivity implements View.OnClickLis
         }
     }
 
+    // helper method for check if the place is in the DB - for the FAB to change
+    public class QueryCheckPlacesAsync extends AsyncTask<String, Void, Boolean> {
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+
+        @Override
+        protected Boolean doInBackground(String... params) {
+            // Query db for one place
+            String placeId = params[0];
+            Boolean isInWatched;
+            if (placesDatabase.placesWatchedModel().fetchOnePlacebyPlaceId(placeId) != null) {
+
+                isInWatched = true;
+            } else {
+                isInWatched = false;
+            }
+            Log.v("isInWatched", String.valueOf(isInWatched));
+            return isInWatched;
+
+        }
+
+        @Override
+        protected void onPostExecute(Boolean isInWatched) {
+            if (isInWatched) {
+                fabAdd.setVisibility(GONE);
+                fabDelete.setVisibility(View.VISIBLE);
+            }
+        }
+    }
+
+    // helper method for deleting the place from db
+    private class DeletePlaceAsync extends AsyncTask<PlaceWatched, Void, Void> {
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+
+        @Override
+        protected Void doInBackground(PlaceWatched... placesWatched) {
+
+            PlaceWatched placeWatched = placesWatched[0];
+
+            placesDatabase.placesWatchedModel().deletePlace(placeWatched);
+
+
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+                fabAdd.setVisibility(View.VISIBLE);
+                fabDelete.setVisibility(GONE);
+
+        }
+    }
 
     // helper method for db Watched Places query - for one item - return it in Detail Activity layout
     private class QueryOnePlaceAsync extends AsyncTask<String, Void, PlaceWatched> {
@@ -251,63 +305,4 @@ public class DetailActivity extends AppCompatActivity implements View.OnClickLis
         }
     }
 
-    // helper method for check if the place is in the DB - for the FAB to change
-    private class QueryCheckPlacesAsync extends AsyncTask<String, Void, Boolean> {
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-        }
-
-        @Override
-        protected Boolean doInBackground(String... params) {
-            // Query db for one place
-            String placeId = params[0];
-            Boolean isInWatched;
-            if (placesDatabase.placesWatchedModel().fetchOnePlacebyPlaceId(placeId) != null) {
-
-                isInWatched = true;
-            } else {
-                isInWatched = false;
-            }
-            Log.v("isInWatched", String.valueOf(isInWatched));
-            return isInWatched;
-
-        }
-
-        @Override
-        protected void onPostExecute(Boolean isInWatched) {
-            if (isInWatched) {
-                fabAdd.setVisibility(GONE);
-                fabDelete.setVisibility(View.VISIBLE);
-            }
-        }
-    }
-
-    // helper method for deleting the place from db
-    private class DeletePlaceAsync extends AsyncTask<String, Void, Void> {
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-        }
-
-        @Override
-        protected Void doInBackground(String... params) {
-            // Query db for one place
-            String placeId = params[0];
-
-            placesDatabase.placesWatchedModel().deleteByPlaceId(placeId);
-
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void aVoid) {
-            super.onPostExecute(aVoid);
-                fabAdd.setVisibility(View.VISIBLE);
-                fabDelete.setVisibility(GONE);
-
-        }
-    }
 }

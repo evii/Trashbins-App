@@ -52,8 +52,12 @@
         <activity android:name=".ui.DetailActivity"
             android:label="@string/app_name"
             android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="cz.optimization.odpadky.MapsActivity" />
 
         </activity>
+
     </application>
 
 </manifest>

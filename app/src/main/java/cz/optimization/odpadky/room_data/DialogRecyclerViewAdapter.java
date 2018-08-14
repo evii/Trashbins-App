@@ -34,7 +34,7 @@ public class DialogRecyclerViewAdapter extends RecyclerView.Adapter<DialogRecycl
 
         holder.itemTextView.setText(placeWatched.getTitle());
         String placeId = placeWatched.getPlaceId();
-        holder.itemView.setTag(placeId);
+        holder.itemView.setTag(placeWatched);
         holder.itemView.setOnClickListener(mClickListener);
 
     }

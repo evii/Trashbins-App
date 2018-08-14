@@ -12,7 +12,7 @@
         android:id="@+id/place_watched_item_tv"
         android:textSize="16sp"
         android:typeface="sans"
-                android:layout_margin="24dp"/>
+        android:layout_marginTop="24dp"/>
 
 </LinearLayout>
 
