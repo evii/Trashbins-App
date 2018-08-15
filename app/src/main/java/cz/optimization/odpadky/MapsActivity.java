@@ -1,9 +1,11 @@
 package cz.optimization.odpadky;
 
 
+import android.app.ActivityOptions;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
@@ -46,18 +48,15 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-// TODO Zkontroluj otvreni z launcher
 // TODO InfoWindow po screen rotation
-// TODO zmena barvy markeru dle typu odpadu
 // TODO otevreni dle aktualni lokace - vysvetleni pro reviewera
-// TODO transition between activities
 
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback,
         SelectTrashbinTypeDialogFragment.AlertPositiveListener, GoogleMap.OnInfoWindowClickListener {
 
     private GoogleMap mMap;
-    private int position = 0;
+    public static int position = 0;
     private double mHomeLatitude;
     private double mHomeLongitude;
     private float mCameraZoom;
@@ -99,6 +98,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         sharedPreferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
 
+        //intial position of map
         mHomeLatitude = 50.0889853530001;
         mHomeLongitude = 14.4723441130001;
         mCameraZoom = 15.5f;
@@ -112,8 +112,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (savedInstanceState != null) {
             if (savedInstanceState.containsKey(POSITION_KEY)) {
                 previousPosition = savedInstanceState.getInt(POSITION_KEY);
-            }
-            else {
+            } else {
                 previousPosition = 0;
             }
             mHomeLatitude = savedInstanceState.getDouble(LAT_KEY);
@@ -125,6 +124,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
         mProgressBar = findViewById(R.id.progress_bar);
+
     }
 
     //saving position and zoom on the map
@@ -142,7 +142,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         outState.putDouble(LNG_KEY, lng);
 
         // save open info window in cae of rotation
-        if (mMarker != null){
+        if (mMarker != null) {
             isInfoDisplayed = mMarker.isInfoWindowShown();
             if (isInfoDisplayed) {
                 String placeIdInfo = mMarker.getSnippet();
@@ -171,7 +171,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         // restore open info window after rotation
         isInfoDisplayed = savedInstanceState.getBoolean(INFOWINDOW_KEY);
-        if(isInfoDisplayed){
+        if (isInfoDisplayed) {
             String placeId = savedInstanceState.getString(INFOPLACEID_KEY);
             markerLat = savedInstanceState.getDouble(MARKERLAT_KEY);
             markerLng = savedInstanceState.getDouble(MARKERLNG_KEY);
@@ -233,8 +233,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(mHomeLatitude, mHomeLongitude), mCameraZoom));
 
+        // opening first screen
+        onPositiveClick(previousPosition);
+
         //WIGDET - display correct containers after clicking from the widget
         String widgetClicked = "";
+
         Bundle extras = getIntent().getExtras();
         if (extras == null) {
             widgetClicked = null;
@@ -294,7 +298,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             }
         }
-
     }
 
     //Filter in action bar
@@ -344,8 +347,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 break;
 
         }
-        //   mClusterManager.cluster();
-
     }
 
     // opening DetailActivity after clicking on Info Window
@@ -361,12 +362,16 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             Log.d(TAG, "ContainersList not contained in Shared preferences");
         }
 
-
         intent.putExtra("placeId", placeId);
         intent.putExtra("title", title);
         intent.putExtra("containersList", containersList);
-        startActivity(intent);
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation(this);
+            startActivity(intent, options.toBundle());
+        } else {
+            startActivity(intent);
+        }
     }
 
     // helper method to get the places from the API - using retrofit + seting onclicklisteners on markers
@@ -483,20 +488,18 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
                 mMarker = renderer.getMarker(trashbinClusterItem);
-               // marker.setTag(containersString);
+                // marker.setTag(containersString);
 
-               //info window after rotation handling
-                if(isInfoDisplayed != null && isInfoDisplayed) {
+                //info window after rotation handling
+                if (isInfoDisplayed != null && isInfoDisplayed) {
                     mMarker = mMap.addMarker(new MarkerOptions()
                             .position(
                                     new LatLng(markerLat,
                                             markerLng))
                             .draggable(true).visible(false));
-                    Log.v("infowzobr", String.valueOf(markerLat) + ", " + String.valueOf(markerLng) );
+                    Log.v("infowzobr", String.valueOf(markerLat) + ", " + String.valueOf(markerLng));
                 }
                 mMarker.showInfoWindow();
-
-
 
 
                 mProgressBar.setVisibility(View.GONE);

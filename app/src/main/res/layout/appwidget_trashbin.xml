@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="@dimen/widget_margin"
-    android:background="@color/colorPrimaryDark">
+    android:background="@color/colorGreen800">
 
     <TextView
         android:layout_width="match_parent"
@@ -21,7 +21,9 @@
         android:text="@string/filter_litter_all_label"
         android:textSize="16sp"
         android:paddingLeft="4dp"
-        android:paddingRight="4dp"/>
+        android:paddingStart="4dp"
+        android:paddingRight="4dp"
+        android:paddingEnd="4dp"/>
 
     <TextView
         android:layout_width="match_parent"
@@ -38,7 +40,9 @@
         android:text="@string/filter_litter_white_glass_label"
         android:textSize="16sp"
         android:paddingLeft="4dp"
-        android:paddingRight="4dp"/>
+        android:paddingStart="4dp"
+        android:paddingRight="4dp"
+        android:paddingEnd="4dp"/>
 
     <TextView
         android:layout_width="match_parent"
@@ -55,7 +59,9 @@
         android:text="@string/filter_litter_plastic_label"
         android:textSize="16sp"
         android:paddingLeft="4dp"
-        android:paddingRight="4dp"/>
+        android:paddingStart="4dp"
+        android:paddingRight="4dp"
+        android:paddingEnd="4dp"/>
 
     <TextView
         android:layout_width="match_parent"
@@ -72,7 +78,9 @@
         android:text="@string/filter_litter_carton_label"
         android:textSize="16sp"
         android:paddingLeft="4dp"
-        android:paddingRight="4dp"/>
+        android:paddingStart="4dp"
+        android:paddingRight="4dp"
+        android:paddingEnd="4dp"/>
 
     <TextView
         android:layout_width="match_parent"

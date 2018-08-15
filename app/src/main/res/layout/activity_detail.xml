@@ -5,8 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-    tools:context="ui.DetailActivity"
-   >
+    tools:context="ui.DetailActivity">
 
     <android.support.design.widget.AppBarLayout
         android:id="@+id/app_bar"
@@ -27,8 +26,7 @@
             <FrameLayout
                 android:id="@+id/photo_container"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                >
+                android:layout_height="wrap_content">
                 <!--suppress AndroidLintContentDescription -->
                 <ImageView
                     android:id="@+id/photo"
@@ -36,11 +34,11 @@
                     android:layout_height="match_parent"
                     android:layout_gravity="center"
                     android:adjustViewBounds="true"
+                    android:alpha="0.5"
+                    android:contentDescription="@null"
                     android:scaleType="centerCrop"
                     android:src="@drawable/dustbin"
-                    app:layout_collapseMode="parallax"
-                    android:alpha="0.5"
-                    />
+                    app:layout_collapseMode="parallax" />
             </FrameLayout>
 
             <android.support.v7.widget.Toolbar
@@ -53,78 +51,61 @@
         </android.support.design.widget.CollapsingToolbarLayout>
     </android.support.design.widget.AppBarLayout>
 
-<android.support.v4.widget.NestedScrollView
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    app:layout_behavior="@string/appbar_scrolling_view_behavior">
-
-
-    <LinearLayout
+    <android.support.v4.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical">
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
 
-        <android.support.v7.widget.RecyclerView
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:id="@+id/detail_recycler_view"
-            android:layout_marginTop="@dimen/detail_recycler_view_margin"
-            >
-
-        </android.support.v7.widget.RecyclerView>
-
-        <!--<TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/id_tv"/>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/detail_tv"/>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/containers_tv"/>-->
+            android:orientation="vertical">
 
 
-        <com.google.android.gms.ads.AdView
-            xmlns:ads="http://schemas.android.com/apk/res-auto"
-            android:id="@+id/adView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_marginTop="@dimen/ad_margin"
-            ads:adSize="BANNER"
-            ads:adUnitId="@string/banner_footer"/>
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/detail_recycler_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginTop="@dimen/detail_recycler_view_margin">
 
-    </LinearLayout>
-</android.support.v4.widget.NestedScrollView>
+            </android.support.v7.widget.RecyclerView>
+
+            <com.google.android.gms.ads.AdView xmlns:ads="http://schemas.android.com/apk/res-auto"
+                android:id="@+id/adView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginTop="@dimen/ad_margin"
+                android:contentDescription="@string/add_banner"
+                ads:adSize="BANNER"
+                ads:adUnitId="@string/banner_footer" />
+
+        </LinearLayout>
+    </android.support.v4.widget.NestedScrollView>
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/fab_add"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/fab_margin"
+        android:tint="@android:color/white"
+        android:contentDescription="@string/fab_add"
         app:layout_anchor="@id/app_bar"
         app:layout_anchorGravity="bottom|end"
-        app:srcCompat="@android:drawable/ic_input_add"
-        android:tint="@android:color/white"
-       />
+        app:srcCompat="@android:drawable/ic_input_add" />
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/fab_delete"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/fab_margin"
-        app:layout_anchor="@id/app_bar"
-        app:layout_anchorGravity="bottom|end"
-        app:srcCompat="@android:drawable/ic_delete"
         android:tint="@android:color/white"
         android:visibility="gone"
-       />
+        android:contentDescription="@string/fab_delete"
+        app:layout_anchor="@id/app_bar"
+        app:layout_anchorGravity="bottom|end"
+        app:srcCompat="@android:drawable/ic_delete" />
 
 </android.support.design.widget.CoordinatorLayout>
 

@@ -7,6 +7,7 @@
         android:id="@+id/action_watched"
         android:orderInCategory="100"
         android:icon="@drawable/ic_remove_red_eye_black_24dp"
+        android:contentDescription="@string/watched_icon"
         android:title="@string/watched"
         app:showAsAction="always" />
 </menu>

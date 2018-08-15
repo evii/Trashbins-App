@@ -51,5 +51,11 @@
     <string name="Action_add_to_watch">This place was added to Watched places</string>
     <string name="Action_delete_from_watch">This place was removed from Watched places</string>
 
+    <string name="add_banner">Add banner.</string>
+    <string name="fab_add">Add place to wathed places.</string>
+    <string name="fab_delete">Remove place from wathed places.</string>
+    <string name="watched_icon">List of places added to watch list.</string>
+    <string name="filter_icon">Filter trashbins by its type.</string>
+
 
 </resources>

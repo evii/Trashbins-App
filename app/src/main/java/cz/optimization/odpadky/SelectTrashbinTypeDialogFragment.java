@@ -47,9 +47,14 @@ public class SelectTrashbinTypeDialogFragment extends DialogFragment {
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         /** Getting the arguments passed to this fragment */
-        Bundle bundle = getArguments();
-        int position = bundle.getInt("position");
+        int position;
+        if (getArguments() != null) {
+            Bundle bundle = getArguments();
+            position = bundle.getInt("position");
 
+        } else {
+            position = 0;
+        }
         // Use the Builder class for convenient dialog construction
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setTitle(getText(R.string.filter_litter_title_dialog));
@@ -62,7 +67,7 @@ public class SelectTrashbinTypeDialogFragment extends DialogFragment {
                 getText(R.string.filter_litter_plastic_label).toString(),
                 getText(R.string.filter_litter_paper_label).toString(),
                 getText(R.string.filter_litter_carton_label).toString(),
-                getText(R.string.filter_litter_electrical_label).toString() };
+                getText(R.string.filter_litter_electrical_label).toString()};
 
         builder.setSingleChoiceItems(trashBins, position, null);
 
