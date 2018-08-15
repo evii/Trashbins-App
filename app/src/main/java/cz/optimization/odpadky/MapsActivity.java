@@ -23,6 +23,7 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.signin.internal.SignInRequest;
 import com.google.android.gms.signin.internal.SignInResponse;
 import com.google.gson.Gson;
@@ -46,9 +47,7 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 // TODO Zkontroluj otvreni z launcher
-// TODO saved instance po zmene orientace - vsude
-//-watchedplacedialog ok
-
+// TODO InfoWindow po screen rotation
 // TODO zmena barvy markeru dle typu odpadu
 // TODO otevreni dle aktualni lokace - vysvetleni pro reviewera
 // TODO transition between activities
@@ -62,6 +61,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private double mHomeLatitude;
     private double mHomeLongitude;
     private float mCameraZoom;
+    private double markerLat;
+    private double markerLng;
+
 
     private static final String POSITION_KEY = "position";
     private static final String LAT_KEY = "latitude";
@@ -70,6 +72,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private static final String INFOWINDOW_KEY = "infowindow";
     private static final String INFOPLACEID_KEY = "infowindowplaceid";
     private static final String CLUSTERITEM_KEY = "clusteritem";
+    private static final String MARKERLAT_KEY = "markerlat";
+    private static final String MARKERLNG_KEY = "markerlng";
     private int previousPosition;
 
     private ClusterManager<TrashbinClusterItem> mClusterManager;
@@ -98,7 +102,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mHomeLatitude = 50.0889853530001;
         mHomeLongitude = 14.4723441130001;
         mCameraZoom = 15.5f;
-        isInfoDisplayed = false;
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -109,6 +112,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (savedInstanceState != null) {
             if (savedInstanceState.containsKey(POSITION_KEY)) {
                 previousPosition = savedInstanceState.getInt(POSITION_KEY);
+            }
+            else {
+                previousPosition = 0;
             }
             mHomeLatitude = savedInstanceState.getDouble(LAT_KEY);
             mHomeLongitude = savedInstanceState.getDouble(LNG_KEY);
@@ -134,17 +140,25 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         outState.putFloat(ZOOM_KEY, zoom);
         outState.putDouble(LAT_KEY, lat);
         outState.putDouble(LNG_KEY, lng);
+
+        // save open info window in cae of rotation
         if (mMarker != null){
             isInfoDisplayed = mMarker.isInfoWindowShown();
             if (isInfoDisplayed) {
                 String placeIdInfo = mMarker.getSnippet();
+                markerLat = mMarker.getPosition().latitude;
+                markerLng = mMarker.getPosition().longitude;
                 outState.putString(INFOPLACEID_KEY, placeIdInfo);
+                outState.putDouble(MARKERLAT_KEY, markerLat);
+                outState.putDouble(MARKERLNG_KEY, markerLng);
 
                 outState.putParcelable(CLUSTERITEM_KEY, trashbinClusterItem);
             }
             Log.v("infowzobrsav", String.valueOf(isInfoDisplayed));
             outState.putBoolean(INFOWINDOW_KEY, isInfoDisplayed);
         }
+
+
     }
 
     // restoring position and zoom on the map
@@ -154,15 +168,18 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mHomeLatitude = savedInstanceState.getDouble(LAT_KEY);
         mHomeLongitude = savedInstanceState.getDouble(LNG_KEY);
         mCameraZoom = savedInstanceState.getFloat(ZOOM_KEY);
+
+        // restore open info window after rotation
         isInfoDisplayed = savedInstanceState.getBoolean(INFOWINDOW_KEY);
         if(isInfoDisplayed){
-        String placeId = savedInstanceState.getString(INFOPLACEID_KEY);
-        trashbinClusterItem = savedInstanceState.getParcelable(CLUSTERITEM_KEY);
-            mMarker = renderer.getMarker(trashbinClusterItem);
+            String placeId = savedInstanceState.getString(INFOPLACEID_KEY);
+            markerLat = savedInstanceState.getDouble(MARKERLAT_KEY);
+            markerLng = savedInstanceState.getDouble(MARKERLNG_KEY);
+            trashbinClusterItem = savedInstanceState.getParcelable(CLUSTERITEM_KEY);
+
             Log.v("infowzobrres", placeId + "");
             fetchContainersAtPlace(placeId);
         }
-
     }
 
     @Override
@@ -225,8 +242,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         } else if (extras.getString(TrashbinAppWidgetProvider.WIDGET_CLICKED_KEY) != null) {
             widgetClicked = extras.getString(TrashbinAppWidgetProvider.WIDGET_CLICKED_KEY);
 
-            Log.v("widgetproblem", widgetClicked + "");
-
             switch (widgetClicked) {
                 case TrashbinAppWidgetProvider.GLASS_BUTTON:
                     mMap.clear();
@@ -279,6 +294,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             }
         }
+
     }
 
     //Filter in action bar
@@ -465,10 +481,23 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 editor.putString(PREFS_KEY, containersString);
                 editor.commit();
 
-                // pass the Containers list to info window
+
                 mMarker = renderer.getMarker(trashbinClusterItem);
                // marker.setTag(containersString);
+
+               //info window after rotation handling
+                if(isInfoDisplayed != null && isInfoDisplayed) {
+                    mMarker = mMap.addMarker(new MarkerOptions()
+                            .position(
+                                    new LatLng(markerLat,
+                                            markerLng))
+                            .draggable(true).visible(false));
+                    Log.v("infowzobr", String.valueOf(markerLat) + ", " + String.valueOf(markerLng) );
+                }
                 mMarker.showInfoWindow();
+
+
+
 
                 mProgressBar.setVisibility(View.GONE);
 
