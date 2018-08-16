@@ -12,18 +12,13 @@ import java.util.List;
 
 import cz.optimization.odpadky.R;
 import cz.optimization.odpadky.objects.Container;
-import cz.optimization.odpadky.room_data.DialogRecyclerViewAdapter;
-import cz.optimization.odpadky.room_data.PlaceWatched;
 
 
 public class DetailActivityRecyclerViewAdapter extends RecyclerView.Adapter<DetailActivityRecyclerViewAdapter.RecyclerViewHolder> {
     private List<Container> mContainerList;
 
-
-
     public DetailActivityRecyclerViewAdapter(List<Container> containersList) {
         mContainerList = containersList;
-
     }
 
     @Override
@@ -51,7 +46,6 @@ public class DetailActivityRecyclerViewAdapter extends RecyclerView.Adapter<Deta
         } else
             holder.percentageTextView.setTextColor(ContextCompat.getColor(holder.percentageTextView.getContext(), R.color.colorOrange));
 
-
         String cleaningString = container.getCleaning();
         int positionOfP = cleaningString.indexOf("P");
         String repeat = cleaningString.substring(1, positionOfP);
@@ -62,17 +56,12 @@ public class DetailActivityRecyclerViewAdapter extends RecyclerView.Adapter<Deta
 
         String underground = container.getUnderground();
         if (underground.equals("true")) {
-            holder.undergroundTextView.setText("underground");
+            holder.undergroundTextView.setText(R.string.underground);
         } else if (underground.equals("false")) {
-            holder.undergroundTextView.setText("above-ground");
+            holder.undergroundTextView.setText(R.string.aboveground);
         } else {
-            holder.undergroundTextView.setText("N/A");
+            holder.undergroundTextView.setText(R.string.NA);
         }
-
-
-
-        /*holder.itemView.setTag(placeWatched);
-        holder.itemView.setOnClickListener(mClickListener);*/
     }
 
     @Override
@@ -81,17 +70,11 @@ public class DetailActivityRecyclerViewAdapter extends RecyclerView.Adapter<Deta
                 mContainerList.size();
     }
 
-    public void addItems(List<Container> containersList) {
-        mContainerList = containersList;
-        notifyDataSetChanged();
-    }
-
     static class RecyclerViewHolder extends RecyclerView.ViewHolder {
         private TextView trashTypeTextView;
         private TextView percentageTextView;
         private TextView cleaningTextView;
         private TextView undergroundTextView;
-
 
         RecyclerViewHolder(View view) {
             super(view);
@@ -99,9 +82,6 @@ public class DetailActivityRecyclerViewAdapter extends RecyclerView.Adapter<Deta
             percentageTextView = view.findViewById(R.id.percentage_tv);
             cleaningTextView = view.findViewById(R.id.cleaning_tv);
             undergroundTextView = view.findViewById(R.id.underground_tv);
-
         }
     }
-
-
 }

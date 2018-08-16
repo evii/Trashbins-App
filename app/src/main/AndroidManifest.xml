@@ -37,6 +37,7 @@
         <receiver android:name="cz.optimization.odpadky.ui.TrashbinAppWidgetProvider" >
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="android.appwidget.action.ALL_BUTTON" />
                 <action android:name="android.appwidget.action.GLASS_BUTTON" />
                 <action android:name="android.appwidget.action.CLEAR_GLASS_BUTTON" />
                 <action android:name="android.appwidget.action.METAL_BUTTON" />

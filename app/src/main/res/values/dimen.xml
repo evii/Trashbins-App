@@ -11,6 +11,14 @@
     <dimen name="detail_item_top_bottom_margin">12dp</dimen>
     <dimen name="detail_item_left_right_margin">12dp</dimen>
     <dimen name="dialog_title">20sp</dimen>
+    <dimen name="widget_text">16sp</dimen>
+    <dimen name="widget_text_padding">4dp</dimen>
+    <dimen name="watched_dialog_elevation">24dp</dimen>
+    <dimen name="watched_dialog_margin">24dp</dimen>
+    <dimen name="watched_dialog_text">16sp</dimen>
+    <dimen name="zero">0dp</dimen>
+    <dimen name="widget_min_width">200dp</dimen>
+    <dimen name="widget_min_height">200dp</dimen>
 
 
 </resources>

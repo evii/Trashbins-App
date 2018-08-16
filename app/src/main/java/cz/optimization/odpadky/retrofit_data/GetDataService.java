@@ -1,7 +1,5 @@
 package cz.optimization.odpadky.retrofit_data;
 
-import android.util.ArrayMap;
-
 import java.util.List;
 
 import cz.optimization.odpadky.objects.Container;

@@ -1,13 +1,10 @@
 package cz.optimization.odpadky;
 
-
 import android.app.ActivityOptions;
-import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.ArrayMap;
@@ -25,9 +22,6 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.signin.internal.SignInRequest;
-import com.google.android.gms.signin.internal.SignInResponse;
 import com.google.gson.Gson;
 import com.google.maps.android.clustering.Cluster;
 import com.google.maps.android.clustering.ClusterManager;
@@ -48,10 +42,6 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-// TODO InfoWindow po screen rotation
-// TODO otevreni dle aktualni lokace - vysvetleni pro reviewera
-
-
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback,
         SelectTrashbinTypeDialogFragment.AlertPositiveListener, GoogleMap.OnInfoWindowClickListener {
 
@@ -60,19 +50,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private double mHomeLatitude;
     private double mHomeLongitude;
     private float mCameraZoom;
-    private double markerLat;
-    private double markerLng;
-
 
     private static final String POSITION_KEY = "position";
     private static final String LAT_KEY = "latitude";
     private static final String LNG_KEY = "longitude";
     private static final String ZOOM_KEY = "zoom";
-    private static final String INFOWINDOW_KEY = "infowindow";
-    private static final String INFOPLACEID_KEY = "infowindowplaceid";
-    private static final String CLUSTERITEM_KEY = "clusteritem";
-    private static final String MARKERLAT_KEY = "markerlat";
-    private static final String MARKERLNG_KEY = "markerlng";
+
     private int previousPosition;
 
     private ClusterManager<TrashbinClusterItem> mClusterManager;
@@ -88,7 +71,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private ProgressBar mProgressBar;
     private Marker mMarker;
-    private Boolean isInfoDisplayed;
 
 
     @Override
@@ -124,7 +106,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
         mProgressBar = findViewById(R.id.progress_bar);
-
     }
 
     //saving position and zoom on the map
@@ -140,25 +121,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         outState.putFloat(ZOOM_KEY, zoom);
         outState.putDouble(LAT_KEY, lat);
         outState.putDouble(LNG_KEY, lng);
-
-        // save open info window in cae of rotation
-        if (mMarker != null) {
-            isInfoDisplayed = mMarker.isInfoWindowShown();
-            if (isInfoDisplayed) {
-                String placeIdInfo = mMarker.getSnippet();
-                markerLat = mMarker.getPosition().latitude;
-                markerLng = mMarker.getPosition().longitude;
-                outState.putString(INFOPLACEID_KEY, placeIdInfo);
-                outState.putDouble(MARKERLAT_KEY, markerLat);
-                outState.putDouble(MARKERLNG_KEY, markerLng);
-
-                outState.putParcelable(CLUSTERITEM_KEY, trashbinClusterItem);
-            }
-            Log.v("infowzobrsav", String.valueOf(isInfoDisplayed));
-            outState.putBoolean(INFOWINDOW_KEY, isInfoDisplayed);
-        }
-
-
     }
 
     // restoring position and zoom on the map
@@ -168,18 +130,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mHomeLatitude = savedInstanceState.getDouble(LAT_KEY);
         mHomeLongitude = savedInstanceState.getDouble(LNG_KEY);
         mCameraZoom = savedInstanceState.getFloat(ZOOM_KEY);
-
-        // restore open info window after rotation
-        isInfoDisplayed = savedInstanceState.getBoolean(INFOWINDOW_KEY);
-        if (isInfoDisplayed) {
-            String placeId = savedInstanceState.getString(INFOPLACEID_KEY);
-            markerLat = savedInstanceState.getDouble(MARKERLAT_KEY);
-            markerLng = savedInstanceState.getDouble(MARKERLNG_KEY);
-            trashbinClusterItem = savedInstanceState.getParcelable(CLUSTERITEM_KEY);
-
-            Log.v("infowzobrres", placeId + "");
-            fetchContainersAtPlace(placeId);
-        }
     }
 
     @Override
@@ -247,6 +197,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             widgetClicked = extras.getString(TrashbinAppWidgetProvider.WIDGET_CLICKED_KEY);
 
             switch (widgetClicked) {
+                case TrashbinAppWidgetProvider.ALL_BUTTON:
+                    mMap.clear();
+                    setTitle(R.string.all_title);
+                    position = 0;
+                    fetchPlaces();
+                    break;
+
                 case TrashbinAppWidgetProvider.GLASS_BUTTON:
                     mMap.clear();
                     setTitle(R.string.glass_title);
@@ -295,7 +252,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     position = 7;
                     fetchContainersType(getResources().getString(R.string.electrical));
                     break;
-
             }
         }
     }
@@ -392,7 +348,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 mClusterManager.addItems(getPlaceLocation(mListPlaces));
                 mClusterManager.cluster();
 
-
                 // onclick listener for cluster
                 mClusterManager.setOnClusterClickListener(
                         new ClusterManager.OnClusterClickListener<TrashbinClusterItem>() {
@@ -411,14 +366,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                             public boolean onClusterItemClick(TrashbinClusterItem clusterItem) {
 
                                 trashbinClusterItem = clusterItem;
+
                                 //get marker from clusterItem
-
                                 String placeId = clusterItem.getSnippet();
-                                Log.v("JsonParseMAPS", placeId);
-
-                                SharedPreferences.Editor editor = sharedPreferences.edit();
-                                editor.putString("placeid", placeId);
-                                editor.commit();
 
                                 //get Containers for given placeId
                                 fetchContainersAtPlace(placeId);
@@ -426,7 +376,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                                 return false;
                             }
                         });
-
 
                 mProgressBar.setVisibility(View.GONE);
             }
@@ -486,21 +435,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 editor.putString(PREFS_KEY, containersString);
                 editor.commit();
 
-
                 mMarker = renderer.getMarker(trashbinClusterItem);
-                // marker.setTag(containersString);
-
-                //info window after rotation handling
-                if (isInfoDisplayed != null && isInfoDisplayed) {
-                    mMarker = mMap.addMarker(new MarkerOptions()
-                            .position(
-                                    new LatLng(markerLat,
-                                            markerLng))
-                            .draggable(true).visible(false));
-                    Log.v("infowzobr", String.valueOf(markerLat) + ", " + String.valueOf(markerLng));
-                }
                 mMarker.showInfoWindow();
-
 
                 mProgressBar.setVisibility(View.GONE);
 
@@ -520,7 +456,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mProgressBar.setVisibility(View.VISIBLE);
         mProgressBar.setIndeterminate(true);
         mMap.clear();
-
 
         GetDataService service = APIClient.getClient().create(GetDataService.class);
 
@@ -553,7 +488,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 for (Place place : mListPlaces) {
                     allPlacesMap.put(place.getPlaceId(), place);
                 }
-                Log.v("containRetro mListP: ", String.valueOf(mListPlaces.size()));
 
                 // create new containers list with coordinates
                 List<Container> containerCoordinatesList = new ArrayList<Container>();
@@ -580,44 +514,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }
                 mClusterManager.clearItems();
                 mClusterManager.addItems(getContainersLocation(containerCoordinatesList));
-                Log.v("containRetro contCoord", String.valueOf(containerCoordinatesList.size()));
                 mClusterManager.cluster();
-
-
-                // onclick listener for cluster
-                mClusterManager.setOnClusterClickListener(
-                        new ClusterManager.OnClusterClickListener<TrashbinClusterItem>() {
-                            @Override
-                            public boolean onClusterClick(Cluster<TrashbinClusterItem> cluster) {
-
-                                Toast.makeText(MapsActivity.this, R.string.Cluster_click, Toast.LENGTH_SHORT).show();
-                                return false;
-                            }
-                        });
-
-                // onclicklistener for marker
-                mClusterManager.setOnClusterItemClickListener(
-                        new ClusterManager.OnClusterItemClickListener<TrashbinClusterItem>() {
-                            @Override
-                            public boolean onClusterItemClick(TrashbinClusterItem clusterItem) {
-
-                                trashbinClusterItem = clusterItem;
-
-                                //get marker from clusterItem
-                                String placeId = clusterItem.getSnippet();
-                                Log.v("JsonParseMAPS", placeId);
-
-                                SharedPreferences.Editor editor = sharedPreferences.edit();
-                                editor.putString("placeid", placeId);
-                                editor.commit();
-
-                                //get Containers for given placeId
-                                fetchContainersAtPlace(placeId);
-
-                                return false;
-                            }
-                        });
-
 
                 mProgressBar.setVisibility(View.GONE);
             }
@@ -653,7 +550,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
         return ListItems;
     }
-
 }
 
 

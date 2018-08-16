@@ -10,8 +10,6 @@ import com.google.maps.android.clustering.ClusterManager;
 import com.google.maps.android.clustering.view.DefaultClusterRenderer;
 
 import cz.optimization.odpadky.MapsActivity;
-import cz.optimization.odpadky.R;
-import cz.optimization.odpadky.ui.TrashbinAppWidgetProvider;
 
 /**
  * Created by evi on 30. 1. 2018.
@@ -31,6 +29,7 @@ public class CustomClusterRenderer extends DefaultClusterRenderer<TrashbinCluste
     @Override
     protected void onBeforeClusterItemRendered(TrashbinClusterItem item,
                                                MarkerOptions markerOptions) {
+
         //different markers color for each trash type
         final BitmapDescriptor markerDescriptor;
 
@@ -71,16 +70,7 @@ public class CustomClusterRenderer extends DefaultClusterRenderer<TrashbinCluste
             default:
                 markerDescriptor = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN);
                 break;
-
         }
-        /*if( MapsActivity.position== 0){
-        markerDescriptor = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN);}
-        else{
-            markerDescriptor = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE);
-        }*/
-
         markerOptions.icon(markerDescriptor);
-
-
     }
 }

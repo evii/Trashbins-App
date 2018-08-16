@@ -9,7 +9,6 @@ import android.widget.TextView;
 import java.util.List;
 
 import cz.optimization.odpadky.R;
-import cz.optimization.odpadky.objects.Place;
 
 public class DialogRecyclerViewAdapter extends RecyclerView.Adapter<DialogRecyclerViewAdapter.RecyclerViewHolder> {
 
@@ -33,10 +32,8 @@ public class DialogRecyclerViewAdapter extends RecyclerView.Adapter<DialogRecycl
         PlaceWatched placeWatched = mPlacesList.get(position);
 
         holder.itemTextView.setText(placeWatched.getTitle());
-        String placeId = placeWatched.getPlaceId();
         holder.itemView.setTag(placeWatched);
         holder.itemView.setOnClickListener(mClickListener);
-
     }
 
     @Override
@@ -50,14 +47,8 @@ public class DialogRecyclerViewAdapter extends RecyclerView.Adapter<DialogRecycl
         notifyDataSetChanged();
     }
 
-    void deleteItem(int position) {
-        mPlacesList.remove(position);
-        notifyItemRemoved(position);
-    }
-
     static class RecyclerViewHolder extends RecyclerView.ViewHolder {
         private TextView itemTextView;
-
 
         RecyclerViewHolder(View view) {
             super(view);

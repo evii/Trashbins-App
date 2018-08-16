@@ -12,7 +12,8 @@ import cz.optimization.odpadky.R;
 
 public class TrashbinAppWidgetProvider extends AppWidgetProvider {
 
-    
+
+    public static final String ALL_BUTTON = "android.appwidget.action.ALL_BUTTON";
     public static final String GLASS_BUTTON = "android.appwidget.action.GLASS_BUTTON";
     public static final String CLEAR_GLASS_BUTTON = "android.appwidget.action.CLEAR_GLASS_BUTTON";
     public static final String METAL_BUTTON = "android.appwidget.action.METAL_BUTTON";
@@ -26,12 +27,15 @@ public class TrashbinAppWidgetProvider extends AppWidgetProvider {
         final int N = appWidgetIds.length;
 
         // Perform this loop procedure for each App Widget that belongs to this provider
-        for (int i=0; i<N; i++) {
+        for (int i = 0; i < N; i++) {
             int appWidgetId = appWidgetIds[i];
 
             // Create Intents for each textView to launch MapsActivity
-            Intent intent = new Intent(context, MapsActivity.class);
+            /*Intent intent = new Intent(context, MapsActivity.class);
             PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, 0);
+*/
+            Intent intentAll = new Intent(ALL_BUTTON);
+            PendingIntent pendingIntentAll = PendingIntent.getBroadcast(context, 0, intentAll, PendingIntent.FLAG_UPDATE_CURRENT);
 
             Intent intentGlass = new Intent(GLASS_BUTTON);
             PendingIntent pendingIntentGlass = PendingIntent.getBroadcast(context, 0, intentGlass, PendingIntent.FLAG_UPDATE_CURRENT);
@@ -57,7 +61,7 @@ public class TrashbinAppWidgetProvider extends AppWidgetProvider {
             // Get the layout for the App Widget and attach an on-click listener
             // to the textviews
             RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.appwidget_trashbin);
-            views.setOnClickPendingIntent(R.id.all_containers_tv, pendingIntent);
+            views.setOnClickPendingIntent(R.id.all_containers_tv, pendingIntentAll);
             views.setOnClickPendingIntent(R.id.glass_containers_tv, pendingIntentGlass);
             views.setOnClickPendingIntent(R.id.clear_glass_containers_tv, pendingIntentClearGlass);
             views.setOnClickPendingIntent(R.id.metal_containers_tv, pendingIntentMetal);
@@ -72,69 +76,65 @@ public class TrashbinAppWidgetProvider extends AppWidgetProvider {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-
-         if (GLASS_BUTTON.equals(intent.getAction())) {
+        if (ALL_BUTTON.equals(intent.getAction())) {
 
             Intent i = new Intent();
-            i.putExtra(WIDGET_CLICKED_KEY, GLASS_BUTTON );
+            i.putExtra(WIDGET_CLICKED_KEY, ALL_BUTTON);
             i.setClassName("cz.optimization.odpadky", "cz.optimization.odpadky.MapsActivity");
             i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(i);
         }
 
-        else if (CLEAR_GLASS_BUTTON.equals(intent.getAction())) {
+        else if (GLASS_BUTTON.equals(intent.getAction())) {
 
             Intent i = new Intent();
-            i.putExtra(WIDGET_CLICKED_KEY, CLEAR_GLASS_BUTTON );
+            i.putExtra(WIDGET_CLICKED_KEY, GLASS_BUTTON);
+            i.setClassName("cz.optimization.odpadky", "cz.optimization.odpadky.MapsActivity");
+            i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            context.startActivity(i);
+        } else if (CLEAR_GLASS_BUTTON.equals(intent.getAction())) {
+
+            Intent i = new Intent();
+            i.putExtra(WIDGET_CLICKED_KEY, CLEAR_GLASS_BUTTON);
+            i.setClassName("cz.optimization.odpadky", "cz.optimization.odpadky.MapsActivity");
+            i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            context.startActivity(i);
+        } else if (METAL_BUTTON.equals(intent.getAction())) {
+
+            Intent i = new Intent();
+            i.putExtra(WIDGET_CLICKED_KEY, METAL_BUTTON);
+            i.setClassName("cz.optimization.odpadky", "cz.optimization.odpadky.MapsActivity");
+            i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            context.startActivity(i);
+        } else if (PLASTIC_BUTTON.equals(intent.getAction())) {
+
+            Intent i = new Intent();
+            i.putExtra(WIDGET_CLICKED_KEY, PLASTIC_BUTTON);
+            i.setClassName("cz.optimization.odpadky", "cz.optimization.odpadky.MapsActivity");
+            i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            context.startActivity(i);
+        } else if (PAPER_BUTTON.equals(intent.getAction())) {
+
+            Intent i = new Intent();
+            i.putExtra(WIDGET_CLICKED_KEY, PAPER_BUTTON);
+            i.setClassName("cz.optimization.odpadky", "cz.optimization.odpadky.MapsActivity");
+            i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            context.startActivity(i);
+        } else if (CARTON_BUTTON.equals(intent.getAction())) {
+
+            Intent i = new Intent();
+            i.putExtra(WIDGET_CLICKED_KEY, CARTON_BUTTON);
+            i.setClassName("cz.optimization.odpadky", "cz.optimization.odpadky.MapsActivity");
+            i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            context.startActivity(i);
+        } else if (ELECTRICAL_BUTTON.equals(intent.getAction())) {
+
+            Intent i = new Intent();
+            i.putExtra(WIDGET_CLICKED_KEY, ELECTRICAL_BUTTON);
             i.setClassName("cz.optimization.odpadky", "cz.optimization.odpadky.MapsActivity");
             i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(i);
         }
-
-        else if (METAL_BUTTON.equals(intent.getAction())) {
-
-            Intent i = new Intent();
-            i.putExtra(WIDGET_CLICKED_KEY, METAL_BUTTON );
-            i.setClassName("cz.optimization.odpadky", "cz.optimization.odpadky.MapsActivity");
-            i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            context.startActivity(i);
-        }
-
-         else if (PLASTIC_BUTTON.equals(intent.getAction())) {
-
-             Intent i = new Intent();
-             i.putExtra(WIDGET_CLICKED_KEY, PLASTIC_BUTTON );
-             i.setClassName("cz.optimization.odpadky", "cz.optimization.odpadky.MapsActivity");
-             i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-             context.startActivity(i);
-         }
-
-         else if (PAPER_BUTTON.equals(intent.getAction())) {
-
-             Intent i = new Intent();
-             i.putExtra(WIDGET_CLICKED_KEY, PAPER_BUTTON );
-             i.setClassName("cz.optimization.odpadky", "cz.optimization.odpadky.MapsActivity");
-             i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-             context.startActivity(i);
-         }
-
-         else if (CARTON_BUTTON.equals(intent.getAction())) {
-
-             Intent i = new Intent();
-             i.putExtra(WIDGET_CLICKED_KEY, CARTON_BUTTON );
-             i.setClassName("cz.optimization.odpadky", "cz.optimization.odpadky.MapsActivity");
-             i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-             context.startActivity(i);
-         }
-
-         else if (ELECTRICAL_BUTTON.equals(intent.getAction())) {
-
-             Intent i = new Intent();
-             i.putExtra(WIDGET_CLICKED_KEY, ELECTRICAL_BUTTON );
-             i.setClassName("cz.optimization.odpadky", "cz.optimization.odpadky.MapsActivity");
-             i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-             context.startActivity(i);
-         }
 
         super.onReceive(context, intent);
     }

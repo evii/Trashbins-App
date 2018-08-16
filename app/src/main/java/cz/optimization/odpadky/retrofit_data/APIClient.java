@@ -10,7 +10,6 @@ public class APIClient {
 
     private static Retrofit retrofit = null;
 
-
     public static Retrofit getClient() {
         if (retrofit == null) {
 
@@ -23,5 +22,4 @@ public class APIClient {
         }
         return retrofit;
     }
-
 }

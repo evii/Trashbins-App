@@ -19,11 +19,15 @@ public class PlaceWatched {
         mContainersList = containersList;
     }
 
-    public String getPlaceId() { return mPlaceId; }
-    public void setPlaceId(String placeId) { mPlaceId = placeId; }
-    public String getTitle() { return mTitle; }
-    public void setPlaceTitle (String title) { mTitle = title; }
-    public String getContainersList() { return mContainersList; }
-    public void setContainersList (String containersList) { mContainersList = containersList; }
+    public String getPlaceId() {
+        return mPlaceId;
+    }
 
+    public String getTitle() {
+        return mTitle;
+    }
+
+    public String getContainersList() {
+        return mContainersList;
+    }
 }

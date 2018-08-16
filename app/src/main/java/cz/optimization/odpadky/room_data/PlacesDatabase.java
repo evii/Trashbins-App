@@ -5,8 +5,6 @@ import android.arch.persistence.room.Room;
 import android.arch.persistence.room.RoomDatabase;
 import android.content.Context;
 
-import cz.optimization.odpadky.objects.Place;
-
 @Database(entities = {PlaceWatched.class}, version = 1)
 public abstract class PlacesDatabase extends RoomDatabase {
 

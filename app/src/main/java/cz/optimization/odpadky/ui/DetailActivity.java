@@ -1,25 +1,17 @@
 package cz.optimization.odpadky.ui;
 
-import android.app.Dialog;
-import android.arch.lifecycle.Observer;
-import android.arch.lifecycle.ViewModelProviders;
 import android.arch.persistence.room.Room;
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.AsyncTask;
-import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.FragmentManager;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -31,39 +23,34 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
-import java.util.ArrayList;
 import java.util.List;
 
 import cz.optimization.odpadky.R;
 import cz.optimization.odpadky.objects.Container;
 import cz.optimization.odpadky.room_data.PlaceWatched;
 import cz.optimization.odpadky.room_data.PlacesDatabase;
-import cz.optimization.odpadky.room_data.PlacesWatchedViewModel;
-import cz.optimization.odpadky.room_data.DialogRecyclerViewAdapter;
 
 import static android.view.View.GONE;
 
 public class DetailActivity extends AppCompatActivity implements PlacesWatchedDialogFragment.NoticeDialogListener {
     private AdView mAdView;
 
-    private String mPlaceId;
-    private String title;
-    private String containersListString;
+    private static String mPlaceId;
+    private static String title;
+    private static String containersListString;
 
-    private PlacesDatabase placesDatabase;
+    private static PlacesDatabase placesDatabase;
 
-    private DetailActivityRecyclerViewAdapter detailActivityAdapter;
-
-    private PlaceWatched mPlaceWatched;
+    private static DetailActivityRecyclerViewAdapter detailActivityAdapter;
     private RecyclerView mDetailRecyclerView;
 
-    private Dialog dialog;
     private CollapsingToolbarLayout collapsingToolbar;
     private FloatingActionButton fabAdd;
     private FloatingActionButton fabDelete;
 
-    private SharedPreferences preferences;
-
+    private static final String PLACEID_KEY = "placeIdKey";
+    private static final String TITLE_KEY = "titleKey";
+    private static final String CONTAINERS_STRING_KEY = "containersStringKey";
 
     private static final String TAG = "DetailActivity";
 
@@ -73,13 +60,19 @@ public class DetailActivity extends AppCompatActivity implements PlacesWatchedDi
         setContentView(R.layout.activity_detail);
 
         // gets data from MapsActivity as parent activity
-
+        if (getIntent() != null) {
             Intent intent = getIntent();
             mPlaceId = intent.getStringExtra("placeId");
             title = intent.getStringExtra("title");
             containersListString = intent.getStringExtra("containersList");
+        }
 
-
+        // retains data after orientation change
+        if (savedInstanceState != null) {
+            mPlaceId = savedInstanceState.getString(PLACEID_KEY);
+            title = savedInstanceState.getString(TITLE_KEY);
+            containersListString = savedInstanceState.getString(CONTAINERS_STRING_KEY);
+        }
 
         Type type = new TypeToken<List<Container>>() {
         }.getType();
@@ -134,8 +127,24 @@ public class DetailActivity extends AppCompatActivity implements PlacesWatchedDi
                         .setAction("Action", null).show();
             }
         });
+    }
 
+    //saving data from detail Activity before orientation change
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString(PLACEID_KEY, mPlaceId);
+        outState.putString(TITLE_KEY, title);
+        outState.putString(CONTAINERS_STRING_KEY, containersListString);
+    }
 
+    // restoring data from detail Activity after orientation change
+    @Override
+    public void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        mPlaceId = savedInstanceState.getString(PLACEID_KEY);
+        title = savedInstanceState.getString(TITLE_KEY);
+        containersListString = savedInstanceState.getString(CONTAINERS_STRING_KEY);
     }
 
     // Watched Places
@@ -147,12 +156,8 @@ public class DetailActivity extends AppCompatActivity implements PlacesWatchedDi
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
         if (id == R.id.action_watched) {
             showAlertDialog();
             return true;
@@ -166,6 +171,7 @@ public class DetailActivity extends AppCompatActivity implements PlacesWatchedDi
         dialog.show(fm, "fragment_alert");
     }
 
+    // method that handles click on watched place in dialog
     @Override
     public void onDialogClick(PlaceWatched selectedPlaceWatched) {
         String placeId = selectedPlaceWatched.getPlaceId();
@@ -175,26 +181,24 @@ public class DetailActivity extends AppCompatActivity implements PlacesWatchedDi
         containersListString = selectedPlaceWatched.getContainersList();
     }
 
+    // interface that checks if the place clicked on in dialog is in watched places.
     @Override
     public void onDialogClickCheck(PlaceWatched selectedPlaceWatched) {
         String placeId = selectedPlaceWatched.getPlaceId();
         new QueryCheckPlacesAsync().execute(placeId);
-
     }
 
     // helper method for insert into db Watched Places
     private class InsertPlaceToWatchedAsync extends AsyncTask<Void, Void, Void> {
 
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-        }
+        private PlaceWatched mPlaceWatched;
 
         @Override
         protected Void doInBackground(Void... voids) {
             //Add place to db
             mPlaceWatched = new PlaceWatched(mPlaceId, title, containersListString);
             placesDatabase.placesWatchedModel().insertSinglePlace(mPlaceWatched);
+
             return null;
         }
 
@@ -207,12 +211,7 @@ public class DetailActivity extends AppCompatActivity implements PlacesWatchedDi
     }
 
     // helper method for check if the place is in the DB - for the FAB to change
-    public class QueryCheckPlacesAsync extends AsyncTask<String, Void, Boolean> {
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-        }
+    private class QueryCheckPlacesAsync extends AsyncTask<String, Void, Boolean> {
 
         @Override
         protected Boolean doInBackground(String... params) {
@@ -226,8 +225,8 @@ public class DetailActivity extends AppCompatActivity implements PlacesWatchedDi
                 isInWatched = false;
             }
             Log.v("isInWatched", String.valueOf(isInWatched));
-            return isInWatched;
 
+            return isInWatched;
         }
 
         @Override
@@ -243,17 +242,10 @@ public class DetailActivity extends AppCompatActivity implements PlacesWatchedDi
     private class DeletePlaceAsync extends AsyncTask<PlaceWatched, Void, Void> {
 
         @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-        }
-
-        @Override
         protected Void doInBackground(PlaceWatched... placesWatched) {
 
             PlaceWatched placeWatched = placesWatched[0];
-
             placesDatabase.placesWatchedModel().deletePlace(placeWatched);
-
 
             return null;
         }
@@ -261,19 +253,13 @@ public class DetailActivity extends AppCompatActivity implements PlacesWatchedDi
         @Override
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
-                fabAdd.setVisibility(View.VISIBLE);
-                fabDelete.setVisibility(GONE);
-
+            fabAdd.setVisibility(View.VISIBLE);
+            fabDelete.setVisibility(GONE);
         }
     }
 
     // helper method for db Watched Places query - for one item - return it in Detail Activity layout
     private class QueryOnePlaceAsync extends AsyncTask<String, Void, PlaceWatched> {
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-        }
 
         @Override
         protected PlaceWatched doInBackground(String... params) {
@@ -285,24 +271,22 @@ public class DetailActivity extends AppCompatActivity implements PlacesWatchedDi
 
         @Override
         protected void onPostExecute(PlaceWatched placeWatched) {
-            if(placeWatched != null) {
-                String watchedContainersListString = placeWatched.getContainersList();
+            if (placeWatched != null) {
+                containersListString = placeWatched.getContainersList();
 
                 Type type = new TypeToken<List<Container>>() {
                 }.getType();
                 Gson gson = new Gson();
-                List<Container> watchedContainersList = gson.fromJson(watchedContainersListString, type);
+                List<Container> watchedContainersList = gson.fromJson(containersListString, type);
 
                 detailActivityAdapter = new DetailActivityRecyclerViewAdapter(watchedContainersList);
                 mDetailRecyclerView.setAdapter(detailActivityAdapter);
 
-                String title = placeWatched.getTitle();
+                title = placeWatched.getTitle();
                 collapsingToolbar.setTitle(title);
-            }
-            else {
+            } else {
                 Log.d(TAG, "Place selected not contained in db");
             }
         }
     }
-
 }

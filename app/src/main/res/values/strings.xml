@@ -57,5 +57,8 @@
     <string name="watched_icon">List of places added to watch list.</string>
     <string name="filter_icon">Filter trashbins by its type.</string>
 
+    <string name="underground">underground</string>
+    <string name="aboveground">above-ground</string>
+    <string name="NA">N/A</string>
 
 </resources>

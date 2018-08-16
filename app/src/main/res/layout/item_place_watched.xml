@@ -10,8 +10,8 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:id="@+id/place_watched_item_tv"
-        android:textSize="16sp"
+        android:textSize="@dimen/watched_dialog_text"
         android:typeface="sans"
-        android:layout_marginTop="24dp"/>
+        android:layout_marginTop="@dimen/watched_dialog_margin"/>
 
 </LinearLayout>

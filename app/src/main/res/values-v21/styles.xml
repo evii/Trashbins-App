@@ -15,9 +15,7 @@
         <!-- specify enter and exit transitions -->
         <item name="android:windowEnterTransition">@transition/exit_map</item>
         <item name="android:windowExitTransition">@transition/exit_map</item>
-
     </style>
-
 
     <style name="AppTheme.NoActionBar">
         <item name="windowActionBar">false</item>

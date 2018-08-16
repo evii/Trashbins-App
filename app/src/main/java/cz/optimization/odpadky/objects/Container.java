@@ -6,18 +6,6 @@ import java.util.List;
 
 public class Container {
 
-   /* @SerializedName("title")
-    private final String mTitle;
-
-    @SerializedName("latitude")
-    private final String mLatitude;
-
-    @SerializedName("longitude")
-    private final double mLongitude;
-
-    @SerializedName("containers_count")
-    private final int mContainersCount;*/
-
     @SerializedName("place_id")
     private final String mPlaceId;
 
@@ -40,17 +28,6 @@ public class Container {
     private double mLongitude;
     private String mTitle;
 
-
-
-    public Container(String placeId, String trashType, int binId, String underground, String cleaning, int progress) {
-        mPlaceId = placeId;
-        mTrashType = trashType;
-        mBinId = binId;
-        mUnderground = underground;
-        mCleaning = cleaning;
-        mProgress = progress;
-    }
-
     public Container(String placeId, String trashType, int binId, String underground, String cleaning, int progress, double lat, double lng, String title) {
         mPlaceId = placeId;
         mTrashType = trashType;
@@ -61,7 +38,6 @@ public class Container {
         mLatitude = lat;
         mLongitude = lng;
         mTitle = title;
-
     }
 
     public String getPlaceId() {
@@ -88,13 +64,13 @@ public class Container {
         return mProgress;
     }
 
-    public double getLatitude() { return mLatitude; }
+    public double getLatitude() {
+        return mLatitude;
+    }
 
-    public double getLongitude() { return mLongitude; }
-
-    public void setLatitude(double lat) { lat = mLatitude; }
-
-    public void setLongitude(double lng) { lng = mLongitude; }
+    public double getLongitude() {
+        return mLongitude;
+    }
 
     public String getTitle() {
         return mTitle;
@@ -108,5 +84,4 @@ public class Container {
             return containers;
         }
     }
-
 }
