@@ -1,10 +1,14 @@
 package cz.optimization.odpadky;
 
 import android.app.ActivityOptions;
+import android.arch.lifecycle.Observer;
+import android.arch.lifecycle.ViewModelProvider;
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.ArrayMap;
@@ -23,14 +27,18 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.google.maps.android.clustering.Cluster;
 import com.google.maps.android.clustering.ClusterManager;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
 import cz.optimization.odpadky.objects.Container;
 import cz.optimization.odpadky.retrofit_data.APIClient;
+import cz.optimization.odpadky.retrofit_data.FetchContainersAtPlaceViewModel;
+import cz.optimization.odpadky.retrofit_data.FetchContainersAtPlaceViewModelFactory;
 import cz.optimization.odpadky.retrofit_data.GetDataService;
 import cz.optimization.odpadky.objects.Place;
 import cz.optimization.odpadky.ui.DetailActivity;
@@ -55,13 +63,17 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private static final String LAT_KEY = "latitude";
     private static final String LNG_KEY = "longitude";
     private static final String ZOOM_KEY = "zoom";
+    private static final String LISTPLACES_KEY = "listPlaces";
+    private static final String LISTCONTAINERS_KEY = "listContainers";
 
     private int previousPosition;
 
     private ClusterManager<TrashbinClusterItem> mClusterManager;
     private List<Place> mListPlaces;
+    private String mListPlacesString;
     private CustomClusterRenderer renderer;
     private TrashbinClusterItem trashbinClusterItem;
+    private String mAllContainersListString;
 
     public static final String PREFS_NAME = "Containers_object";
     public static final String PREFS_KEY = "Containers_key";
@@ -112,8 +124,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
+        // saving selection from the dilog of types
         outState.putInt(POSITION_KEY, position);
 
+        // saving position of map
         LatLng mapPosition = mMap.getProjection().getVisibleRegion().latLngBounds.getCenter();
         float zoom = mMap.getCameraPosition().zoom;
         double lat = mapPosition.latitude;
@@ -121,6 +135,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         outState.putFloat(ZOOM_KEY, zoom);
         outState.putDouble(LAT_KEY, lat);
         outState.putDouble(LNG_KEY, lng);
+
+        //saving already fetched data from API
+        outState.putString(LISTPLACES_KEY, mListPlacesString);
+        outState.putString(LISTCONTAINERS_KEY, mAllContainersListString);
+
     }
 
     // restoring position and zoom on the map
@@ -130,6 +149,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mHomeLatitude = savedInstanceState.getDouble(LAT_KEY);
         mHomeLongitude = savedInstanceState.getDouble(LNG_KEY);
         mCameraZoom = savedInstanceState.getFloat(ZOOM_KEY);
+        mListPlacesString = savedInstanceState.getString(LISTPLACES_KEY);
+        mAllContainersListString = savedInstanceState.getString(LISTCONTAINERS_KEY);
     }
 
     @Override
@@ -330,63 +351,99 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-    // helper method to get the places from the API - using retrofit + seting onclicklisteners on markers
+    // helper method to get the places from the API - using retrofit + setting onclicklisteners on markers
     public void fetchPlaces() {
 
-        mProgressBar.setVisibility(View.VISIBLE);
-        mProgressBar.setIndeterminate(true);
-        mMap.clear();
+        // call to API for places made for the first time
+        if (mListPlacesString == null) {
+            mProgressBar.setVisibility(View.VISIBLE);
+            mProgressBar.setIndeterminate(true);
+            mMap.clear();
 
-        GetDataService service = APIClient.getClient().create(GetDataService.class);
-        Call<List<Place>> call = service.getAllPlaces();
-        call.enqueue(new Callback<List<Place>>() {
-            @Override
-            public void onResponse(Call<List<Place>> call, Response<List<Place>> response) {
+            GetDataService service = APIClient.getClient().create(GetDataService.class);
+            Call<List<Place>> call = service.getAllPlaces();
+            call.enqueue(new Callback<List<Place>>() {
+                @Override
+                public void onResponse(Call<List<Place>> call, Response<List<Place>> response) {
 
-                mListPlaces = response.body();
-                mClusterManager.clearItems();
-                mClusterManager.addItems(getPlaceLocation(mListPlaces));
-                mClusterManager.cluster();
+                    mListPlaces = response.body();
+                    Gson gson = new Gson();
+                    mListPlacesString = gson.toJson(mListPlaces);
+                    fetchPlacesHelper(mListPlaces);
 
-                // onclick listener for cluster
-                mClusterManager.setOnClusterClickListener(
-                        new ClusterManager.OnClusterClickListener<TrashbinClusterItem>() {
-                            @Override
-                            public boolean onClusterClick(Cluster<TrashbinClusterItem> cluster) {
+                    mProgressBar.setVisibility(View.GONE);
+                }
 
-                                Toast.makeText(MapsActivity.this, R.string.Cluster_click, Toast.LENGTH_SHORT).show();
-                                return false;
-                            }
-                        });
-
-                // onclicklistener for marker
-                mClusterManager.setOnClusterItemClickListener(
-                        new ClusterManager.OnClusterItemClickListener<TrashbinClusterItem>() {
-                            @Override
-                            public boolean onClusterItemClick(TrashbinClusterItem clusterItem) {
-
-                                trashbinClusterItem = clusterItem;
-
-                                //get marker from clusterItem
-                                String placeId = clusterItem.getSnippet();
-
-                                //get Containers for given placeId
-                                fetchContainersAtPlace(placeId);
-
-                                return false;
-                            }
-                        });
-
-                mProgressBar.setVisibility(View.GONE);
-            }
-
-            @Override
-            public void onFailure(Call<List<Place>> call, Throwable t) {
-                mProgressBar.setVisibility(View.GONE);
-                Toast.makeText(MapsActivity.this, R.string.No_internet_connection, Toast.LENGTH_LONG).show();
-            }
-        });
+                @Override
+                public void onFailure(Call<List<Place>> call, Throwable t) {
+                    mProgressBar.setVisibility(View.GONE);
+                    Toast.makeText(MapsActivity.this, R.string.No_internet_connection, Toast.LENGTH_LONG).show();
+                }
+            });
+            // the API call was already done and data about places fetched and saved.
+        } else {
+            Gson gson = new Gson();
+            Type type = new TypeToken<List<Place>>() {
+            }.getType();
+            mListPlaces = gson.fromJson(mListPlacesString, type);
+            fetchPlacesHelper(mListPlaces);
+        }
     }
+
+    // helper method to avoid doubling the code - to fechtPlaces() method
+    private void fetchPlacesHelper(List<Place> listPlaces) {
+
+        mClusterManager.clearItems();
+        mClusterManager.addItems(getPlaceLocation(listPlaces));
+        mClusterManager.cluster();
+
+        // onclick listener for cluster
+        mClusterManager.setOnClusterClickListener(
+                new ClusterManager.OnClusterClickListener<TrashbinClusterItem>() {
+                    @Override
+                    public boolean onClusterClick(Cluster<TrashbinClusterItem> cluster) {
+
+                        Toast.makeText(MapsActivity.this, R.string.Cluster_click, Toast.LENGTH_SHORT).show();
+                        return false;
+                    }
+                });
+
+        // onclicklistener for marker
+        mClusterManager.setOnClusterItemClickListener(
+                new ClusterManager.OnClusterItemClickListener<TrashbinClusterItem>() {
+                    @Override
+                    public boolean onClusterItemClick(TrashbinClusterItem clusterItem) {
+
+                        trashbinClusterItem = clusterItem;
+
+                        //get marker from clusterItem
+                        String placeId = clusterItem.getSnippet();
+                        Log.v("infowindhruza", placeId);
+
+                        FetchContainersAtPlaceViewModelFactory factory =
+                                new FetchContainersAtPlaceViewModelFactory(getApplication(),
+                                        placeId, renderer, trashbinClusterItem);
+                        final FetchContainersAtPlaceViewModel viewModel = ViewModelProviders.of(MapsActivity.this, factory)
+                                .get(FetchContainersAtPlaceViewModel.class);
+                        viewModel.FetchContainersAtPlace(placeId, renderer, trashbinClusterItem).observe(MapsActivity.this, new Observer<List<Container>>() {
+                            @Override
+                            public void onChanged(@Nullable List<Container> containers) {
+
+                            }
+                        });
+
+
+
+                        //get Containers for given placeId
+                        //fetchContainersAtPlace(placeId);
+
+                        //Marker marker = renderer.getMarker(trashbinClusterItem);
+                        //marker.showInfoWindow();
+                        return false;
+                    }
+                });
+    }
+
 
     // helper method to transfer the List of places into the cluster items
     private List<TrashbinClusterItem> getPlaceLocation(List<Place> places) {
@@ -413,7 +470,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         return ListItems;
     }
 
-    // helper method to get details of containers in a place
+    // helper method to get details of containers in one place
     private void fetchContainersAtPlace(String placeId) {
         mProgressBar.setVisibility(View.VISIBLE);
         mProgressBar.setIndeterminate(true);
@@ -423,7 +480,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         call.enqueue(new Callback<Container.ContainersResult>() {
             @Override
             public void onResponse(Call<Container.ContainersResult> call, Response<Container.ContainersResult> response) {
-                int urlResp = response.code();
 
                 List<Container> containers = response.body().getResults();
 
@@ -453,79 +509,150 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     // helper method to display containers of selected type
     public void fetchContainersType(final String trashTypeSelected) {
 
-        mProgressBar.setVisibility(View.VISIBLE);
-        mProgressBar.setIndeterminate(true);
-        mMap.clear();
+        if (mAllContainersListString == null || mAllContainersListString.isEmpty()) {
+            mProgressBar.setVisibility(View.VISIBLE);
+            mProgressBar.setIndeterminate(true);
+            mMap.clear();
 
-        GetDataService service = APIClient.getClient().create(GetDataService.class);
+            GetDataService service = APIClient.getClient().create(GetDataService.class);
 
-        if (mListPlaces == null) {
+            if (mListPlacesString == null || mListPlacesString.isEmpty()) {
 
-            Call<List<Place>> call1 = service.getAllPlaces();
-            call1.enqueue(new Callback<List<Place>>() {
+                Call<List<Place>> call1 = service.getAllPlaces();
+                call1.enqueue(new Callback<List<Place>>() {
+                    @Override
+                    public void onResponse(Call<List<Place>> call, Response<List<Place>> response) {
+                        mListPlaces = response.body();
+                        Gson gson = new Gson();
+                        mListPlacesString = gson.toJson(mListPlaces);
+                    }
+
+                    @Override
+                    public void onFailure(Call<List<Place>> call, Throwable t) {
+                        Toast.makeText(MapsActivity.this, R.string.No_internet_connection, Toast.LENGTH_LONG).show();
+                    }
+                });
+            }
+
+            Call<List<Container>> call2 = service.getContainersTypes();
+            call2.enqueue(new Callback<List<Container>>() {
                 @Override
-                public void onResponse(Call<List<Place>> call, Response<List<Place>> response) {
-                    mListPlaces = response.body();
+                public void onResponse(Call<List<Container>> call, Response<List<Container>> response) {
+
+                    List<Container> allContainersList = response.body();
+                    Gson gson = new Gson();
+                    mAllContainersListString = gson.toJson(allContainersList);
+
+                    //covert list of places with coordinates into array map
+                    ArrayMap<String, Place> allPlacesMap = new ArrayMap<String, Place>();
+                    for (Place place : mListPlaces) {
+                        allPlacesMap.put(place.getPlaceId(), place);
+                    }
+
+                    // create new containers list with coordinates
+                    List<Container> containerCoordinatesList = new ArrayList<Container>();
+                    String trashType = "";
+                    for (Container container : allContainersList) {
+                        trashType = container.getTrashType();
+
+                        if (trashType.equals(trashTypeSelected)) {
+
+                            String placeId = container.getPlaceId();
+                            Place selectedPlace = allPlacesMap.get(placeId);
+                            double lat = selectedPlace.getLatitude();
+                            double lng = selectedPlace.getLongitude();
+                            String title = selectedPlace.getTitle();
+
+                            int binId = container.getBinId();
+                            String underground = container.getUnderground();
+                            String cleaning = container.getCleaning();
+                            int progress = container.getProgress();
+
+                            Container containerCoordinates = new Container(placeId, trashType, binId, underground, cleaning, progress, lat, lng, title);
+                            containerCoordinatesList.add(containerCoordinates);
+                        }
+                    }
+
+                    mClusterManager.clearItems();
+                    mClusterManager.addItems(getContainersLocation(containerCoordinatesList));
+                    mClusterManager.cluster();
+
+                    mProgressBar.setVisibility(View.GONE);
                 }
 
                 @Override
-                public void onFailure(Call<List<Place>> call, Throwable t) {
+                public void onFailure(Call<List<Container>> call, Throwable t) {
                     mProgressBar.setVisibility(View.GONE);
                     Toast.makeText(MapsActivity.this, R.string.No_internet_connection, Toast.LENGTH_LONG).show();
                 }
             });
+
+        } else {
+            mMap.clear();
+            Gson gson = new Gson();
+            Type typeContainer = new TypeToken<List<Container>>() {
+            }.getType();
+            List<Container> allContainersList = gson.fromJson(mAllContainersListString, typeContainer);
+
+            //covert list of places with coordinates into array map
+            ArrayMap<String, Place> allPlacesMap = new ArrayMap<String, Place>();
+            Type typePlace = new TypeToken<List<Place>>() {
+            }.getType();
+            mListPlaces = gson.fromJson(mListPlacesString, typePlace);
+
+            for (Place place : mListPlaces) {
+                allPlacesMap.put(place.getPlaceId(), place);
+            }
+
+            // create new containers list with coordinates
+            List<Container> containerCoordinatesList = new ArrayList<Container>();
+            String trashType = "";
+            for (Container container : allContainersList) {
+                trashType = container.getTrashType();
+
+                if (trashType.equals(trashTypeSelected)) {
+
+                    String placeId = container.getPlaceId();
+                    Place selectedPlace = allPlacesMap.get(placeId);
+                    double lat = selectedPlace.getLatitude();
+                    double lng = selectedPlace.getLongitude();
+                    String title = selectedPlace.getTitle();
+
+                    int binId = container.getBinId();
+                    String underground = container.getUnderground();
+                    String cleaning = container.getCleaning();
+                    int progress = container.getProgress();
+
+                    Container containerCoordinates = new Container(placeId, trashType, binId, underground, cleaning, progress, lat, lng, title);
+                    containerCoordinatesList.add(containerCoordinates);
+                }
+            }
+            mClusterManager.clearItems();
+            mClusterManager.addItems(getContainersLocation(containerCoordinatesList));
+            mClusterManager.cluster();
+
+            mProgressBar.setVisibility(View.GONE);
+
         }
 
-        Call<List<Container>> call2 = service.getContainersTypes();
-        call2.enqueue(new Callback<List<Container>>() {
-            @Override
-            public void onResponse(Call<List<Container>> call, Response<List<Container>> response) {
 
-                List<Container> allContainersList = response.body();
-
-                //covert list of places with coordinates into array map
-                ArrayMap<String, Place> allPlacesMap = new ArrayMap<String, Place>();
-                for (Place place : mListPlaces) {
-                    allPlacesMap.put(place.getPlaceId(), place);
-                }
-
-                // create new containers list with coordinates
-                List<Container> containerCoordinatesList = new ArrayList<Container>();
-                String trashType = "";
-                for (Container container : allContainersList) {
-                    trashType = container.getTrashType();
-
-                    if (trashType.equals(trashTypeSelected)) {
-
-                        String placeId = container.getPlaceId();
-                        Place selectedPlace = allPlacesMap.get(placeId);
-                        double lat = selectedPlace.getLatitude();
-                        double lng = selectedPlace.getLongitude();
-                        String title = selectedPlace.getTitle();
-
-                        int binId = container.getBinId();
-                        String underground = container.getUnderground();
-                        String cleaning = container.getCleaning();
-                        int progress = container.getProgress();
-
-                        Container containerCoordinates = new Container(placeId, trashType, binId, underground, cleaning, progress, lat, lng, title);
-                        containerCoordinatesList.add(containerCoordinates);
-                    }
-                }
-                mClusterManager.clearItems();
-                mClusterManager.addItems(getContainersLocation(containerCoordinatesList));
-                mClusterManager.cluster();
-
-                mProgressBar.setVisibility(View.GONE);
-            }
-
-            @Override
-            public void onFailure(Call<List<Container>> call, Throwable t) {
-                mProgressBar.setVisibility(View.GONE);
-                Toast.makeText(MapsActivity.this, R.string.No_internet_connection, Toast.LENGTH_LONG).show();
-            }
-        });
     }
+
+    // the API call was already done and data about containers fetched and saved.
+/*        else
+
+    {
+
+        Gson gson = new Gson();
+        Type type = new TypeToken<List<Container>>() {
+        }.getType();
+        List<Container> containerCoordinatesList = gson.fromJson(mContainerCoordinatesListString, type);
+        mClusterManager.clearItems();
+        mClusterManager.addItems(getContainersLocation(containerCoordinatesList));
+        mClusterManager.cluster();
+    }
+
+}*/
 
     // helper method to get clusteritems for container of selected type
     private List<TrashbinClusterItem> getContainersLocation(List<Container> containers) {
