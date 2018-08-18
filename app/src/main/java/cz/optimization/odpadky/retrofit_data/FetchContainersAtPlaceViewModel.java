@@ -28,51 +28,32 @@ public class FetchContainersAtPlaceViewModel extends AndroidViewModel {
 
     private MutableLiveData<List<Container>> mContainers;
     private String mPlaceId;
-    private CustomClusterRenderer mRenderer;
-    private TrashbinClusterItem mTrashbinClusterItem;
 
-    public FetchContainersAtPlaceViewModel (@NonNull Application application, String placeId, CustomClusterRenderer renderer, TrashbinClusterItem trashbinClusterItem) {
+    public FetchContainersAtPlaceViewModel (@NonNull Application application, String placeId) {
         super(application);
         mPlaceId = placeId;
-        mRenderer = renderer;
-        mTrashbinClusterItem = trashbinClusterItem;
     }
 
-    public LiveData<List<Container>> FetchContainersAtPlace(String placeId, CustomClusterRenderer renderer, TrashbinClusterItem trashbinClusterItem) {
+    public LiveData<List<Container>> FetchContainersAtPlace(String placeId) {
         if (mContainers == null) {
             mContainers = new MutableLiveData<List<Container>>();
-            fetchContainersAtPlace(placeId, renderer, trashbinClusterItem);
+            fetchContainersAtPlace(placeId);
         }
         return mContainers;
     }
 
-    private void fetchContainersAtPlace(String placeId, final CustomClusterRenderer renderer, final TrashbinClusterItem trashbinClusterItem) {
+    private void fetchContainersAtPlace(String placeId) {
 
         GetDataService service = APIClient.getClient().create(GetDataService.class);
         Call<Container.ContainersResult> call = service.getContainersList(placeId);
         call.enqueue(new Callback<Container.ContainersResult>() {
             @Override
             public void onResponse(Call<Container.ContainersResult> call, Response<Container.ContainersResult> response) {
-
                 List<Container> containers = response.body().getResults();
-
-                Gson gson = new Gson();
-                String containersString = gson.toJson(containers);
-
-                // Puting data about Containers at given place to SharedPreferences
-                SharedPreferences sharedPreferences = getApplication().getSharedPreferences(MapsActivity.PREFS_NAME, MapsActivity.MODE_PRIVATE);
-                SharedPreferences.Editor editor = sharedPreferences.edit();
-                editor.putString(MapsActivity.PREFS_KEY, containersString);
-                editor.commit();
-
-                Marker marker = renderer.getMarker(trashbinClusterItem);
-                marker.showInfoWindow();
-
             }
 
             @Override
             public void onFailure(Call<Container.ContainersResult> call, Throwable t) {
-
                 Toast.makeText(getApplication(), R.string.No_internet_connection, Toast.LENGTH_LONG).show();
             }
         });

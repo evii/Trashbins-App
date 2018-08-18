@@ -55,6 +55,7 @@ public class CustomInfoWindow implements GoogleMap.InfoWindowAdapter {
                 Context.MODE_PRIVATE);
         if (sharedpreferences.contains(MapsActivity.PREFS_KEY)) {
             containersList = sharedpreferences.getString(MapsActivity.PREFS_KEY, "");
+            Log.v("infowindhruzaiw", containersList);
         } else {
             Log.d(TAG, "ContainersList not contained in Shared preferences");
         }

@@ -11,20 +11,15 @@ public class FetchContainersAtPlaceViewModelFactory extends ViewModelProvider.Ne
 
     private Application mApplication;
     private String mPlaceId;
-    private CustomClusterRenderer mRenderer;
-    private TrashbinClusterItem mTrashbinClusterItem;
 
-
-    public FetchContainersAtPlaceViewModelFactory(Application application, String placeId, CustomClusterRenderer renderer, TrashbinClusterItem trashbinClusterItem) {
+    public FetchContainersAtPlaceViewModelFactory(Application application, String placeId) {
         mApplication = application;
         mPlaceId = placeId;
-        mRenderer = renderer;
-        mTrashbinClusterItem = trashbinClusterItem;
-    }
+            }
 
     @Override
     public <T extends ViewModel> T create(Class<T> modelClass) {
-        return (T) new FetchContainersAtPlaceViewModel(mApplication, mPlaceId, mRenderer, mTrashbinClusterItem);
+        return (T) new FetchContainersAtPlaceViewModel(mApplication, mPlaceId);
     }
 
 }

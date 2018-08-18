@@ -84,6 +84,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private ProgressBar mProgressBar;
     private Marker mMarker;
 
+    FetchContainersAtPlaceViewModelFactory factory;
+    FetchContainersAtPlaceViewModel viewModel;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -118,7 +122,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
         mProgressBar = findViewById(R.id.progress_bar);
-    }
+
+
+
+            }
 
     //saving position and zoom on the map
     @Override
@@ -419,15 +426,25 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         //get marker from clusterItem
                         String placeId = clusterItem.getSnippet();
                         Log.v("infowindhruza", placeId);
-
-                        FetchContainersAtPlaceViewModelFactory factory =
-                                new FetchContainersAtPlaceViewModelFactory(getApplication(),
-                                        placeId, renderer, trashbinClusterItem);
-                        final FetchContainersAtPlaceViewModel viewModel = ViewModelProviders.of(MapsActivity.this, factory)
+                        factory = new FetchContainersAtPlaceViewModelFactory(getApplication(),placeId);
+                        viewModel = ViewModelProviders.of(MapsActivity.this, factory)
                                 .get(FetchContainersAtPlaceViewModel.class);
-                        viewModel.FetchContainersAtPlace(placeId, renderer, trashbinClusterItem).observe(MapsActivity.this, new Observer<List<Container>>() {
+
+                        viewModel.FetchContainersAtPlace(placeId).observe(MapsActivity.this, new Observer<List<Container>>() {
+
                             @Override
                             public void onChanged(@Nullable List<Container> containers) {
+                                Gson gson = new Gson();
+                                String containersString = gson.toJson(containers);
+                                Log.v("infowindhruza", containersString);
+                                // Puting data about Containers at given place to SharedPreferences
+                                SharedPreferences.Editor editor = sharedPreferences.edit();
+                                editor.putString(PREFS_KEY, containersString);
+                                editor.commit();
+
+                                Marker marker = renderer.getMarker(trashbinClusterItem);
+                                marker.showInfoWindow();
+
 
                             }
                         });
