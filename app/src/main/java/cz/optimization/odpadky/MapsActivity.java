@@ -34,12 +34,16 @@ import com.google.maps.android.clustering.ClusterManager;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import cz.optimization.odpadky.objects.Container;
 import cz.optimization.odpadky.retrofit_data.APIClient;
 import cz.optimization.odpadky.retrofit_data.FetchContainersAtPlaceViewModel;
 import cz.optimization.odpadky.retrofit_data.FetchContainersAtPlaceViewModelFactory;
+import cz.optimization.odpadky.retrofit_data.FetchContainersTypeViewModel;
+import cz.optimization.odpadky.retrofit_data.FetchContainersTypeViewModelFactory;
 import cz.optimization.odpadky.retrofit_data.GetDataService;
 import cz.optimization.odpadky.objects.Place;
 import cz.optimization.odpadky.ui.DetailActivity;
@@ -87,9 +91,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private ProgressBar mProgressBar;
     private Marker mMarker;
+    private Map<TrashbinClusterItem, Marker> mClusterMarkerMap;
 
-    private FetchContainersAtPlaceViewModelFactory factory;
-    private FetchContainersAtPlaceViewModel viewModel;
     private Boolean isInfoDisplayed;
 
 
@@ -97,6 +100,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
+
+        mClusterMarkerMap = new HashMap<>();
 
         sharedPreferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
 
@@ -109,6 +114,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
+
+        /*if(savedInstanceState == null){
+            mapFragment.setRetainInstance(true);   // maintains the map fragment on orientation changes
+        }*/
+
 
         // restoring position and zoom on the map
         if (savedInstanceState != null) {
@@ -152,6 +163,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         // save open info window in cae of rotation
         if (mMarker != null){
+            Log.v ("infowzobr", "marker is not null");
             isInfoDisplayed = mMarker.isInfoWindowShown();
             if (isInfoDisplayed) {
                 String placeIdInfo = mMarker.getSnippet();
@@ -161,6 +173,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
               //  outState.putDouble(MARKERLAT_KEY, markerLat);
              //   outState.putDouble(MARKERLNG_KEY, markerLng);
                 outState.putParcelable(CLUSTERITEM_KEY, trashbinClusterItem);
+                mClusterMarkerMap.put(trashbinClusterItem, mMarker);
+                String markerId = mMarker.getId();
+                outState.putString("markerId", markerId);
+
             }
             Log.v("infowzobrsav", String.valueOf(isInfoDisplayed));
             outState.putBoolean(INFOWINDOW_KEY, isInfoDisplayed);
@@ -190,8 +206,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             Log.v("infowzobrres", placeId + "");
 
-            factory = new FetchContainersAtPlaceViewModelFactory(getApplication(), placeId);
-            viewModel = ViewModelProviders.of(MapsActivity.this, factory)
+            FetchContainersAtPlaceViewModelFactory factory = new FetchContainersAtPlaceViewModelFactory(getApplication(), placeId);
+            FetchContainersAtPlaceViewModel viewModel = ViewModelProviders.of(MapsActivity.this, factory)
                     .get(FetchContainersAtPlaceViewModel.class);
 
             viewModel.FetchContainersAtPlace(placeId).observe(MapsActivity.this, new Observer<List<Container>>() {
@@ -211,7 +227,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     mMarker = renderer.getMarker(trashbinClusterItem);
                     Log.v("infowzobr", trashbinClusterItem.toString()+" clusteritem " );
                     Log.v("infowzobr", renderer.toString()+" renderer" );
-                    mMarker.showInfoWindow();
+                  //  mMarker.showInfoWindow();
+
 
                 }
             });
@@ -273,6 +290,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .setOnInfoWindowAdapter(new CustomInfoWindow(MapsActivity.this));
 
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(mHomeLatitude, mHomeLongitude), mCameraZoom));
+
 
         // opening first screen
         onPositiveClick(previousPosition);
@@ -488,8 +506,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                         //get marker from clusterItem
                         final String placeId = clusterItem.getSnippet();
-                        factory = new FetchContainersAtPlaceViewModelFactory(getApplication(), placeId);
-                        viewModel = ViewModelProviders.of(MapsActivity.this, factory)
+
+                        // helper method to get details of containers in one place
+                        FetchContainersAtPlaceViewModelFactory factory = new FetchContainersAtPlaceViewModelFactory(getApplication(), placeId);
+                        FetchContainersAtPlaceViewModel viewModel = ViewModelProviders.of(MapsActivity.this, factory)
                                 .get(FetchContainersAtPlaceViewModel.class);
 
                         viewModel.FetchContainersAtPlace(placeId).observe(MapsActivity.this, new Observer<List<Container>>() {
@@ -542,51 +562,37 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         return ListItems;
     }
 
-    // helper method to get details of containers in one place
-    private void fetchContainersAtPlace(String placeId) {
-        mProgressBar.setVisibility(View.VISIBLE);
-        mProgressBar.setIndeterminate(true);
-
-        GetDataService service = APIClient.getClient().create(GetDataService.class);
-        Call<Container.ContainersResult> call = service.getContainersList(placeId);
-        call.enqueue(new Callback<Container.ContainersResult>() {
-            @Override
-            public void onResponse(Call<Container.ContainersResult> call, Response<Container.ContainersResult> response) {
-
-                List<Container> containers = response.body().getResults();
-
-                Gson gson = new Gson();
-                String containersString = gson.toJson(containers);
-
-                // Puting data about Containers at given place to SharedPreferences
-                SharedPreferences.Editor editor = sharedPreferences.edit();
-                editor.putString(PREFS_KEY, containersString);
-                editor.commit();
-
-                mMarker = renderer.getMarker(trashbinClusterItem);
-                mMarker.showInfoWindow();
-
-                mProgressBar.setVisibility(View.GONE);
-
-            }
-
-            @Override
-            public void onFailure(Call<Container.ContainersResult> call, Throwable t) {
-                mProgressBar.setVisibility(View.GONE);
-                Toast.makeText(MapsActivity.this, R.string.No_internet_connection, Toast.LENGTH_LONG).show();
-            }
-        });
-    }
-
     // helper method to display containers of selected type
     public void fetchContainersType(final String trashTypeSelected) {
 
-        if (mAllContainersListString == null || mAllContainersListString.isEmpty()) {
+        /*if (mAllContainersListString == null || mAllContainersListString.isEmpty()) {
             mProgressBar.setVisibility(View.VISIBLE);
-            mProgressBar.setIndeterminate(true);
-            mMap.clear();
+            mProgressBar.setIndeterminate(true);*/
 
-            GetDataService service = APIClient.getClient().create(GetDataService.class);
+        mProgressBar.setVisibility(View.VISIBLE);
+        mProgressBar.setIndeterminate(true);
+
+        mMap.clear();
+
+
+        FetchContainersTypeViewModelFactory factory = new FetchContainersTypeViewModelFactory(getApplication(), trashTypeSelected, mListPlacesString);
+        FetchContainersTypeViewModel viewModel = ViewModelProviders.of(MapsActivity.this, factory)
+                .get(FetchContainersTypeViewModel.class);
+
+        viewModel.FetchContainersType(trashTypeSelected, mListPlacesString).observe(MapsActivity.this, new Observer<List<Container>>() {
+
+            @Override
+            public void onChanged(List<Container> containers) {
+
+                mClusterManager.clearItems();
+                mClusterManager.addItems(getContainersLocation(containers));
+                mClusterManager.cluster();
+
+            }
+        });
+        mProgressBar.setVisibility(View.GONE);
+
+           /* GetDataService service = APIClient.getClient().create(GetDataService.class);
 
             if (mListPlacesString == null || mListPlacesString.isEmpty()) {
 
@@ -643,23 +649,23 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                             Container containerCoordinates = new Container(placeId, trashType, binId, underground, cleaning, progress, lat, lng, title);
                             containerCoordinatesList.add(containerCoordinates);
                         }
-                    }
+                    }*/
 
-                    mClusterManager.clearItems();
+                    /*mClusterManager.clearItems();
                     mClusterManager.addItems(getContainersLocation(containerCoordinatesList));
-                    mClusterManager.cluster();
+                    mClusterManager.cluster();*/
 
-                    mProgressBar.setVisibility(View.GONE);
-                }
+              /*      mProgressBar.setVisibility(View.GONE);
+                }*/
 
-                @Override
+               /* @Override
                 public void onFailure(Call<List<Container>> call, Throwable t) {
                     mProgressBar.setVisibility(View.GONE);
                     Toast.makeText(MapsActivity.this, R.string.No_internet_connection, Toast.LENGTH_LONG).show();
                 }
-            });
+            });*/
 
-        } else {
+       /* } else {
             mMap.clear();
             Gson gson = new Gson();
             Type typeContainer = new TypeToken<List<Container>>() {
@@ -705,7 +711,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             mProgressBar.setVisibility(View.GONE);
 
-        }
+        }*/
 
 
     }
