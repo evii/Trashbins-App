@@ -211,7 +211,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     mMarker = renderer.getMarker(trashbinClusterItem);
                     Log.v("infowzobr", trashbinClusterItem.toString()+" clusteritem " );
                     Log.v("infowzobr", renderer.toString()+" renderer" );
-               //     marker.showInfoWindow();
+                    mMarker.showInfoWindow();
 
                 }
             });
