@@ -28,6 +28,7 @@ public class Container {
     private double mLongitude;
     private String mTitle;
 
+
     public Container(String placeId, String trashType, int binId, String underground, String cleaning, int progress, double lat, double lng, String title) {
         mPlaceId = placeId;
         mTrashType = trashType;
@@ -64,15 +65,11 @@ public class Container {
         return mProgress;
     }
 
-    public double getLatitude() {
-        return mLatitude;
-    }
+    public double getLatitude() { return mLatitude; }
 
-    public double getLongitude() {
-        return mLongitude;
-    }
+    public double getLongitude() { return mLongitude; }
 
-    public String getTitle() {
+        public String getTitle() {
         return mTitle;
     }
 
@@ -84,4 +81,5 @@ public class Container {
             return containers;
         }
     }
+
 }

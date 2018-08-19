@@ -1,6 +1,7 @@
 package cz.optimization.odpadky;
 
 import android.app.ActivityOptions;
+import android.arch.lifecycle.MutableLiveData;
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProvider;
 import android.arch.lifecycle.ViewModelProviders;
@@ -65,6 +66,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private static final String ZOOM_KEY = "zoom";
     private static final String LISTPLACES_KEY = "listPlaces";
     private static final String LISTCONTAINERS_KEY = "listContainers";
+    private static final String INFOPLACEID_KEY = "infowindowplaceid";
+    private static final String CLUSTERITEM_KEY = "clusteritem";
+    private static final String INFOWINDOW_KEY = "infowindow";
 
     private int previousPosition;
 
@@ -84,9 +88,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private ProgressBar mProgressBar;
     private Marker mMarker;
 
-    FetchContainersAtPlaceViewModelFactory factory;
-    FetchContainersAtPlaceViewModel viewModel;
-
+    private FetchContainersAtPlaceViewModelFactory factory;
+    private FetchContainersAtPlaceViewModel viewModel;
+    private Boolean isInfoDisplayed;
 
 
     @Override
@@ -124,8 +128,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mProgressBar = findViewById(R.id.progress_bar);
 
 
-
-            }
+    }
 
     //saving position and zoom on the map
     @Override
@@ -147,6 +150,23 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         outState.putString(LISTPLACES_KEY, mListPlacesString);
         outState.putString(LISTCONTAINERS_KEY, mAllContainersListString);
 
+        // save open info window in cae of rotation
+        if (mMarker != null){
+            isInfoDisplayed = mMarker.isInfoWindowShown();
+            if (isInfoDisplayed) {
+                String placeIdInfo = mMarker.getSnippet();
+                //markerLat = mMarker.getPosition().latitude;
+                //markerLng = mMarker.getPosition().longitude;
+                outState.putString(INFOPLACEID_KEY, placeIdInfo);
+              //  outState.putDouble(MARKERLAT_KEY, markerLat);
+             //   outState.putDouble(MARKERLNG_KEY, markerLng);
+                outState.putParcelable(CLUSTERITEM_KEY, trashbinClusterItem);
+            }
+            Log.v("infowzobrsav", String.valueOf(isInfoDisplayed));
+            outState.putBoolean(INFOWINDOW_KEY, isInfoDisplayed);
+        }
+
+
     }
 
     // restoring position and zoom on the map
@@ -158,6 +178,49 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mCameraZoom = savedInstanceState.getFloat(ZOOM_KEY);
         mListPlacesString = savedInstanceState.getString(LISTPLACES_KEY);
         mAllContainersListString = savedInstanceState.getString(LISTCONTAINERS_KEY);
+
+
+        // restore open info window after rotation
+        isInfoDisplayed = savedInstanceState.getBoolean(INFOWINDOW_KEY);
+        if(isInfoDisplayed){
+            String placeId = savedInstanceState.getString(INFOPLACEID_KEY);
+          //  markerLat = savedInstanceState.getDouble(MARKERLAT_KEY);
+            //markerLng = savedInstanceState.getDouble(MARKERLNG_KEY);
+            trashbinClusterItem = savedInstanceState.getParcelable(CLUSTERITEM_KEY);
+
+            Log.v("infowzobrres", placeId + "");
+
+            factory = new FetchContainersAtPlaceViewModelFactory(getApplication(), placeId);
+            viewModel = ViewModelProviders.of(MapsActivity.this, factory)
+                    .get(FetchContainersAtPlaceViewModel.class);
+
+            viewModel.FetchContainersAtPlace(placeId).observe(MapsActivity.this, new Observer<List<Container>>() {
+
+                @Override
+                public void onChanged(List<Container> containers) {
+
+                    Gson gson = new Gson();
+                    String containersString = gson.toJson(containers);
+
+                    // Puting data about Containers at given place to SharedPreferences
+                    SharedPreferences.Editor editor = sharedPreferences.edit();
+                    editor.putString(PREFS_KEY, containersString);
+                    editor.commit();
+
+                    renderer = new CustomClusterRenderer(MapsActivity.this, mMap, mClusterManager);
+                    mMarker = renderer.getMarker(trashbinClusterItem);
+                    Log.v("infowzobr", trashbinClusterItem.toString()+" clusteritem " );
+                    Log.v("infowzobr", renderer.toString()+" renderer" );
+               //     marker.showInfoWindow();
+
+                }
+            });
+
+
+
+
+        }
+
     }
 
     @Override
@@ -424,38 +487,30 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         trashbinClusterItem = clusterItem;
 
                         //get marker from clusterItem
-                        String placeId = clusterItem.getSnippet();
-                        Log.v("infowindhruza", placeId);
-                        factory = new FetchContainersAtPlaceViewModelFactory(getApplication(),placeId);
+                        final String placeId = clusterItem.getSnippet();
+                        factory = new FetchContainersAtPlaceViewModelFactory(getApplication(), placeId);
                         viewModel = ViewModelProviders.of(MapsActivity.this, factory)
                                 .get(FetchContainersAtPlaceViewModel.class);
 
                         viewModel.FetchContainersAtPlace(placeId).observe(MapsActivity.this, new Observer<List<Container>>() {
 
                             @Override
-                            public void onChanged(@Nullable List<Container> containers) {
+                            public void onChanged(List<Container> containers) {
+
                                 Gson gson = new Gson();
                                 String containersString = gson.toJson(containers);
-                                Log.v("infowindhruza", containersString);
+
                                 // Puting data about Containers at given place to SharedPreferences
                                 SharedPreferences.Editor editor = sharedPreferences.edit();
                                 editor.putString(PREFS_KEY, containersString);
                                 editor.commit();
 
-                                Marker marker = renderer.getMarker(trashbinClusterItem);
-                                marker.showInfoWindow();
-
+                                mMarker = renderer.getMarker(trashbinClusterItem);
+                                mMarker.showInfoWindow();
 
                             }
                         });
 
-
-
-                        //get Containers for given placeId
-                        //fetchContainersAtPlace(placeId);
-
-                        //Marker marker = renderer.getMarker(trashbinClusterItem);
-                        //marker.showInfoWindow();
                         return false;
                     }
                 });
