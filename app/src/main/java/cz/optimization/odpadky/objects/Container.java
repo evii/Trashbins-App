@@ -1,10 +1,13 @@
 package cz.optimization.odpadky.objects;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
 
-public class Container {
+public class Container implements Parcelable{
 
     @SerializedName("place_id")
     private final String mPlaceId;
@@ -49,6 +52,29 @@ public class Container {
     }
 
 
+    protected Container(Parcel in) {
+        mPlaceId = in.readString();
+        mTrashType = in.readString();
+        mUnderground = in.readString();
+        mCleaning = in.readString();
+        mProgress = in.readInt();
+        mLatitude = in.readDouble();
+        mLongitude = in.readDouble();
+        mTitle = in.readString();
+    }
+
+    public static final Creator<Container> CREATOR = new Creator<Container>() {
+        @Override
+        public Container createFromParcel(Parcel in) {
+            return new Container(in);
+        }
+
+        @Override
+        public Container[] newArray(int size) {
+            return new Container[size];
+        }
+    };
+
     public String getPlaceId() {
         return mPlaceId;
     }
@@ -75,6 +101,23 @@ public class Container {
 
         public String getTitle() {
         return mTitle;
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel parcel, int i) {
+        parcel.writeString(mPlaceId);
+        parcel.writeString(mTrashType);
+        parcel.writeString(mUnderground);
+        parcel.writeString(mCleaning);
+        parcel.writeInt(mProgress);
+        parcel.writeDouble(mLatitude);
+        parcel.writeDouble(mLongitude);
+        parcel.writeString(mTitle);
     }
 
 

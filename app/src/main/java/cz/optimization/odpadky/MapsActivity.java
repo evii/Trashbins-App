@@ -156,9 +156,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         outState.putDouble(LNG_KEY, lng);
 
         //saving already fetched data from API
-        outState.putString(LISTPLACES_KEY, mListPlacesString);
-        outState.putString(LISTCONTAINERS_KEY, mAllContainersListString);
-      //  outState.putString(LISTCONTAINERSCOORD_KEY, mContainersCoordinatesListString);
+        outState.putParcelableArrayList(LISTPLACES_KEY, new ArrayList<Place>(mListPlaces));
+        outState.putParcelableArrayList(LISTCONTAINERS_KEY, new ArrayList<Container>(mAllContainersList));
+        //  outState.putString(LISTCONTAINERSCOORD_KEY, mContainersCoordinatesListString);
 
 
         // save open info window in cae of rotation
@@ -194,9 +194,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mHomeLongitude = savedInstanceState.getDouble(LNG_KEY);
         mCameraZoom = savedInstanceState.getFloat(ZOOM_KEY);
 
-        mListPlacesString = savedInstanceState.getString(LISTPLACES_KEY);
-        mAllContainersListString = savedInstanceState.getString(LISTCONTAINERS_KEY);
-     //   mContainersCoordinatesListString = savedInstanceState.getString(LISTCONTAINERSCOORD_KEY);
+        mListPlaces = savedInstanceState.getParcelableArrayList(LISTPLACES_KEY);
+        mAllContainersList = savedInstanceState.getParcelableArrayList(LISTCONTAINERS_KEY);
+        //   mContainersCoordinatesListString = savedInstanceState.getString(LISTCONTAINERSCOORD_KEY);
 
         // restore open info window after rotation
         isInfoDisplayed = savedInstanceState.getBoolean(INFOWINDOW_KEY);
@@ -418,7 +418,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void fetchPlaces() {
 
         // call to API for places made for the first time
-        if (mListPlacesString == null) {
+        if (mListPlaces == null) {
             mProgressBar.setVisibility(View.VISIBLE);
             mProgressBar.setIndeterminate(true);
             mMap.clear();
@@ -431,7 +431,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                     mListPlaces = response.body();
 
-                    mListPlacesString = gson.toJson(mListPlaces);
+                    //  mListPlacesString = gson.toJson(mListPlaces);
                     fetchPlacesHelper(mListPlaces);
 
                     mProgressBar.setVisibility(View.GONE);
@@ -446,9 +446,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             // the API call was already done and data about places fetched and saved.
         } else {
 
-            Type type = new TypeToken<List<Place>>() {
+           /* Type type = new TypeToken<List<Place>>() {
             }.getType();
-            mListPlaces = gson.fromJson(mListPlacesString, type);
+            mListPlaces = gson.fromJson(mListPlacesString, type);*/
             fetchPlacesHelper(mListPlaces);
         }
     }
@@ -597,14 +597,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         GetDataService service = APIClient.getClient().create(GetDataService.class);
 
-        if (mListPlacesString == null) {
+        if (mListPlaces == null) {
 
             Call<List<Place>> call1 = service.getAllPlaces();
             call1.enqueue(new Callback<List<Place>>() {
                 @Override
                 public void onResponse(Call<List<Place>> call, Response<List<Place>> response) {
                     mListPlaces = response.body();
-                    mListPlacesString = gson.toJson(mListPlaces);
+                    /*mListPlacesString = gson.toJson(mListPlaces);*/
                 }
 
                 @Override
@@ -614,21 +614,21 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             });
         } else {
 
-            Type type = new TypeToken<List<Place>>() {
+           /* Type type = new TypeToken<List<Place>>() {
             }.getType();
-            mListPlaces = gson.fromJson(mListPlacesString, type);
+            mListPlaces = gson.fromJson(mListPlacesString, type);*/
         }
 
 
-        if (mAllContainersListString == null) {
+        if (mAllContainersList == null) {
 
             Call<List<Container>> call2 = service.getContainersTypes();
             call2.enqueue(new Callback<List<Container>>() {
                 @Override
                 public void onResponse(Call<List<Container>> call, Response<List<Container>> response) {
 
-                    List<Container> allContainersList = response.body();
-                    mAllContainersListString = gson.toJson(allContainersList);
+                    mAllContainersList = response.body();
+                    //  mAllContainersListString = gson.toJson(allContainersList);
 
                     new AssignCoordinatesTask().execute(trashTypeSelected);
 
@@ -666,45 +666,45 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             // create new containers list with coordinates
             List<Container> containerCoordinatesList = new ArrayList<Container>();
-      //     if (mContainersCoordinatesListString == null) {
+            //     if (mContainersCoordinatesListString == null) {
 
-                String trashType = "";
+            String trashType = "";
 
-                String trashTypeSel = params[0];
+            String trashTypeSel = params[0];
 
-                Type type = new TypeToken<List<Container>>() {
+                /*Type type = new TypeToken<List<Container>>() {
                 }.getType();
-                List<Container> allContainersList = gson.fromJson(mAllContainersListString, type);
+                List<Container> allContainersList = gson.fromJson(mAllContainersListString, type);*/
 
-                final ArrayMap<String, Place> allPlacesMap;
-                //convert list of places with coordinates into array map
-                allPlacesMap = new ArrayMap<String, Place>();
-                List<Place> placesList = mListPlaces;
-                for (Place place : placesList) {
-                    allPlacesMap.put(place.getPlaceId(), place);
+            final ArrayMap<String, Place> allPlacesMap;
+            //convert list of places with coordinates into array map
+            allPlacesMap = new ArrayMap<String, Place>();
+            List<Place> placesList = mListPlaces;
+            for (Place place : placesList) {
+                allPlacesMap.put(place.getPlaceId(), place);
+            }
+            List<Container> allContainersList = mAllContainersList;
+            for (Container container : allContainersList) {
+                trashType = container.getTrashType();
+
+                if (trashType.equals(trashTypeSel)) {
+
+                    String placeId = container.getPlaceId();
+                    Place selectedPlace = allPlacesMap.get(placeId);
+                    double lat = selectedPlace.getLatitude();
+                    double lng = selectedPlace.getLongitude();
+                    String title = selectedPlace.getTitle();
+
+                    String underground = container.getUnderground();
+                    String cleaning = container.getCleaning();
+                    int progress = container.getProgress();
+
+                    Container containerCoordinates = new Container(placeId, trashType, progress, lat, lng);
+                    containerCoordinatesList.add(containerCoordinates);
                 }
 
-                for (Container container : allContainersList) {
-                    trashType = container.getTrashType();
-
-                    if (trashType.equals(trashTypeSel)) {
-
-                        String placeId = container.getPlaceId();
-                        Place selectedPlace = allPlacesMap.get(placeId);
-                        double lat = selectedPlace.getLatitude();
-                        double lng = selectedPlace.getLongitude();
-                        String title = selectedPlace.getTitle();
-
-                        String underground = container.getUnderground();
-                        String cleaning = container.getCleaning();
-                        int progress = container.getProgress();
-
-                        Container containerCoordinates = new Container(placeId, trashType, progress, lat, lng);
-                        containerCoordinatesList.add(containerCoordinates);
-                    }
-
-                 //   mContainersCoordinatesListString = gson.toJson(containerCoordinatesList);
-             }
+                //   mContainersCoordinatesListString = gson.toJson(containerCoordinatesList);
+            }
 
            /* } else {
                 Log.v("forloopNENInull", mContainersCoordinatesListString.substring(1,15));
