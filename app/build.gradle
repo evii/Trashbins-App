@@ -25,7 +25,6 @@ android {
         // for test Add enter: ca-app-pub-3940256099942544/6300978111
         resValue "string", "banner_footer", banner_footer
 
-
     }
     buildTypes {
         release {
