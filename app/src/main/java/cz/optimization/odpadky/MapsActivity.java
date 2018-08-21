@@ -29,6 +29,7 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.google.maps.android.clustering.Cluster;
@@ -156,8 +157,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         outState.putDouble(LNG_KEY, lng);
 
         //saving already fetched data from API
-        outState.putParcelableArrayList(LISTPLACES_KEY, new ArrayList<Place>(mListPlaces));
-        outState.putParcelableArrayList(LISTCONTAINERS_KEY, new ArrayList<Container>(mAllContainersList));
+        if (mListPlaces != null) {
+            outState.putParcelableArrayList(LISTPLACES_KEY, new ArrayList<Place>(mListPlaces));
+        }
+        if (mAllContainersList != null) {
+            outState.putParcelableArrayList(LISTCONTAINERS_KEY, new ArrayList<Container>(mAllContainersList));
+        }
         //  outState.putString(LISTCONTAINERSCOORD_KEY, mContainersCoordinatesListString);
 
 
@@ -463,22 +468,29 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
         //restore Info window if it was displayed before
-        Marker MarkerWithInfoWindowShown = renderer.getMarker(trashbinClusterItem);
-        ;
-        Log.v("infowzobr", String.valueOf(MarkerWithInfoWindowShown) + " ");
+        Marker markerWithInfoWindowShown;
+        MarkerOptions markerOptions = null;
+
         if (isInfoDisplayed) {
             for (TrashbinClusterItem item : itemsToAdd) {
                 String placeId = item.getSnippet();
                 if (placeId.equals(mPlaceIdInfo)) {
-                    Marker marker = renderer.getMarker(item);
-                    MarkerWithInfoWindowShown = marker;
-                    Log.v("infowzobr", String.valueOf(marker) + " ");
-                } else {
+                    LatLng position = item.getPosition();
+
+
+                    markerOptions = new MarkerOptions().position(item.getPosition())
+                            .title(item.getTitle()).snippet(item.getSnippet());
+
 
                 }
+
             }
 
-            MarkerWithInfoWindowShown.showInfoWindow();
+            markerWithInfoWindowShown = mMap.addMarker(markerOptions);
+            Log.v("infowzobr", String.valueOf(markerWithInfoWindowShown) + " ");
+
+
+            markerWithInfoWindowShown.showInfoWindow();
 
         }
 
@@ -699,7 +711,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     String cleaning = container.getCleaning();
                     int progress = container.getProgress();
 
-                    Container containerCoordinates = new Container(placeId, trashType, progress, lat, lng);
+                    Container containerCoordinates = new Container(placeId, trashType, progress, lat, lng, title);
                     containerCoordinatesList.add(containerCoordinates);
                 }
 
@@ -711,7 +723,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 Type type = new TypeToken<List<Container>>() {
                 }.getType();
                 containerCoordinatesList = gson.fromJson(mContainersCoordinatesListString, type);
-
             }*/
             return containerCoordinatesList;
         }
@@ -787,4 +798,3 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         return ListItems;
     }
 }
-

@@ -40,12 +40,13 @@ public class Container implements Parcelable{
         mTitle = title;
     }
 
-    public Container(String placeId, String trashType, int progress, double lat, double lng) {
+    public Container(String placeId, String trashType, int progress, double lat, double lng, String title) {
         mPlaceId = placeId;
         mTrashType = trashType;
         mProgress = progress;
         mLatitude = lat;
         mLongitude = lng;
+        mTitle = title;
         mUnderground = "";
         mCleaning = "";
 
