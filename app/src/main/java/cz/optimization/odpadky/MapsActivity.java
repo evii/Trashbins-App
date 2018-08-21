@@ -73,6 +73,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private static final String ZOOM_KEY = "zoom";
     private static final String LISTPLACES_KEY = "listPlaces";
     private static final String LISTCONTAINERS_KEY = "listContainers";
+    private static final String LISTCONTAINERSCOORD_KEY = "listContainersCoord";
     private static final String INFOPLACEID_KEY = "infowindowplaceid";
     private static final String CLUSTERITEM_KEY = "clusteritem";
     private static final String INFOWINDOW_KEY = "infowindow";
@@ -81,11 +82,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private ClusterManager<TrashbinClusterItem> mClusterManager;
     private List<Place> mListPlaces;
+    private List<Container> mAllContainersList;
+    private String mListPlacesString;
+    private String mAllContainersListString;
+
     private CustomClusterRenderer renderer;
     private TrashbinClusterItem trashbinClusterItem;
     private TrashbinClusterItem trashbinClusterItemInfo;
-    private String mListPlacesString;
-    private String mAllContainersListString;
+    private String mContainersCoordinatesListString;
 
     public static final String PREFS_NAME = "Containers_object";
     public static final String PREFS_KEY = "Containers_key";
@@ -154,6 +158,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         //saving already fetched data from API
         outState.putString(LISTPLACES_KEY, mListPlacesString);
         outState.putString(LISTCONTAINERS_KEY, mAllContainersListString);
+      //  outState.putString(LISTCONTAINERSCOORD_KEY, mContainersCoordinatesListString);
+
 
         // save open info window in cae of rotation
         if (mMarker != null) {
@@ -162,13 +168,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             if (isInfoDisplayed) {
                 mPlaceIdInfo = mMarker.getSnippet();
-                Log.v("infowzobrons", mPlaceIdInfo);
+//                Log.v("infowzobrons", mPlaceIdInfo);
                 //markerLat = mMarker.getPosition().latitude;
                 //markerLng = mMarker.getPosition().longitude;
                 outState.putString(INFOPLACEID_KEY, mPlaceIdInfo);
                 //  outState.putDouble(MARKERLAT_KEY, markerLat);
                 //   outState.putDouble(MARKERLNG_KEY, markerLng);
-             outState.putParcelable(CLUSTERITEM_KEY, trashbinClusterItem);
+                outState.putParcelable(CLUSTERITEM_KEY, trashbinClusterItem);
                 Log.v("infowzobrsav", String.valueOf(trashbinClusterItem));
                 /*   mClusterMarkerMap.put(trashbinClusterItem, mMarker);
                 String markerId = mMarker.getId();
@@ -190,6 +196,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         mListPlacesString = savedInstanceState.getString(LISTPLACES_KEY);
         mAllContainersListString = savedInstanceState.getString(LISTCONTAINERS_KEY);
+     //   mContainersCoordinatesListString = savedInstanceState.getString(LISTCONTAINERSCOORD_KEY);
 
         // restore open info window after rotation
         isInfoDisplayed = savedInstanceState.getBoolean(INFOWINDOW_KEY);
@@ -454,24 +461,26 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mClusterManager.addItems(itemsToAdd);
         mClusterManager.cluster();
 
+
         //restore Info window if it was displayed before
-        if(isInfoDisplayed){
+        Marker MarkerWithInfoWindowShown = renderer.getMarker(trashbinClusterItem);
+        ;
+        Log.v("infowzobr", String.valueOf(MarkerWithInfoWindowShown) + " ");
+        if (isInfoDisplayed) {
+            for (TrashbinClusterItem item : itemsToAdd) {
+                String placeId = item.getSnippet();
+                if (placeId.equals(mPlaceIdInfo)) {
+                    Marker marker = renderer.getMarker(item);
+                    MarkerWithInfoWindowShown = marker;
+                    Log.v("infowzobr", String.valueOf(marker) + " ");
+                } else {
 
+                }
+            }
 
-
-
-
-
-            Marker marker = renderer.getMarker(trashbinClusterItemInfo);
-            Log.v("infowzobr", String.valueOf(marker) + " ");
-            marker.showInfoWindow();
+            MarkerWithInfoWindowShown.showInfoWindow();
 
         }
-
-
-
-
-
 
 
         // onclick listener for cluster
@@ -623,7 +632,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                     new AssignCoordinatesTask().execute(trashTypeSelected);
 
-                    }
+                }
 
                 @Override
                 public void onFailure(Call<List<Container>> call, Throwable t) {
@@ -631,7 +640,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     Toast.makeText(MapsActivity.this, R.string.No_internet_connection, Toast.LENGTH_LONG).show();
                 }
             });
-
 
 
         } else {
@@ -658,42 +666,53 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             // create new containers list with coordinates
             List<Container> containerCoordinatesList = new ArrayList<Container>();
-            String trashType = "";
+      //     if (mContainersCoordinatesListString == null) {
 
-            String trashTypeSel = params[0];
+                String trashType = "";
 
-            Type type = new TypeToken<List<Container>>() {
-            }.getType();
-            List<Container> allContainersList = gson.fromJson(mAllContainersListString, type);
+                String trashTypeSel = params[0];
 
-            final ArrayMap<String, Place> allPlacesMap;
-            //convert list of places with coordinates into array map
-            allPlacesMap = new ArrayMap<String, Place>();
-            List<Place> placesList = mListPlaces;
-            for (Place place : placesList) {
-                allPlacesMap.put(place.getPlaceId(), place);
-            }
+                Type type = new TypeToken<List<Container>>() {
+                }.getType();
+                List<Container> allContainersList = gson.fromJson(mAllContainersListString, type);
 
-            for (Container container : allContainersList) {
-                trashType = container.getTrashType();
-
-                if (trashType.equals(trashTypeSel)) {
-
-                    String placeId = container.getPlaceId();
-                    Place selectedPlace = allPlacesMap.get(placeId);
-                    double lat = selectedPlace.getLatitude();
-                    double lng = selectedPlace.getLongitude();
-                    String title = selectedPlace.getTitle();
-
-                    int binId = container.getBinId();
-                    String underground = container.getUnderground();
-                    String cleaning = container.getCleaning();
-                    int progress = container.getProgress();
-
-                    Container containerCoordinates = new Container(placeId, trashType, binId, underground, cleaning, progress, lat, lng, title);
-                    containerCoordinatesList.add(containerCoordinates);
+                final ArrayMap<String, Place> allPlacesMap;
+                //convert list of places with coordinates into array map
+                allPlacesMap = new ArrayMap<String, Place>();
+                List<Place> placesList = mListPlaces;
+                for (Place place : placesList) {
+                    allPlacesMap.put(place.getPlaceId(), place);
                 }
-            }
+
+                for (Container container : allContainersList) {
+                    trashType = container.getTrashType();
+
+                    if (trashType.equals(trashTypeSel)) {
+
+                        String placeId = container.getPlaceId();
+                        Place selectedPlace = allPlacesMap.get(placeId);
+                        double lat = selectedPlace.getLatitude();
+                        double lng = selectedPlace.getLongitude();
+                        String title = selectedPlace.getTitle();
+
+                        String underground = container.getUnderground();
+                        String cleaning = container.getCleaning();
+                        int progress = container.getProgress();
+
+                        Container containerCoordinates = new Container(placeId, trashType, progress, lat, lng);
+                        containerCoordinatesList.add(containerCoordinates);
+                    }
+
+                 //   mContainersCoordinatesListString = gson.toJson(containerCoordinatesList);
+             }
+
+           /* } else {
+                Log.v("forloopNENInull", mContainersCoordinatesListString.substring(1,15));
+                Type type = new TypeToken<List<Container>>() {
+                }.getType();
+                containerCoordinatesList = gson.fromJson(mContainersCoordinatesListString, type);
+
+            }*/
             return containerCoordinatesList;
         }
 
@@ -736,7 +755,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                         }
                     });
-
 
 
             mProgressBar.setVisibility(View.GONE);

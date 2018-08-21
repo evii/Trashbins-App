@@ -107,12 +107,12 @@ public class FetchContainersTypeViewModel extends AndroidViewModel {
                         double lng = selectedPlace.getLongitude();
                         String title = selectedPlace.getTitle();
 
-                        int binId = container.getBinId();
+
                         String underground = container.getUnderground();
                         String cleaning = container.getCleaning();
                         int progress = container.getProgress();
 
-                        Container containerCoordinates = new Container(placeId, trashType, binId, underground, cleaning, progress, lat, lng, title);
+                        Container containerCoordinates = new Container(placeId, trashType, underground, cleaning, progress, lat, lng, title);
                         containerCoordinatesList.add(containerCoordinates);
                     }
                 }

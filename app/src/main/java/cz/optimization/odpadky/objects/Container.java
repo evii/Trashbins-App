@@ -12,9 +12,6 @@ public class Container {
     @SerializedName("trash_type")
     private final String mTrashType;
 
-    @SerializedName("bin_id")
-    private final int mBinId;
-
     @SerializedName("underground")
     private final String mUnderground;
 
@@ -29,10 +26,9 @@ public class Container {
     private String mTitle;
 
 
-    public Container(String placeId, String trashType, int binId, String underground, String cleaning, int progress, double lat, double lng, String title) {
+    public Container(String placeId, String trashType, String underground, String cleaning, int progress, double lat, double lng, String title) {
         mPlaceId = placeId;
         mTrashType = trashType;
-        mBinId = binId;
         mUnderground = underground;
         mCleaning = cleaning;
         mProgress = progress;
@@ -41,16 +37,24 @@ public class Container {
         mTitle = title;
     }
 
+    public Container(String placeId, String trashType, int progress, double lat, double lng) {
+        mPlaceId = placeId;
+        mTrashType = trashType;
+        mProgress = progress;
+        mLatitude = lat;
+        mLongitude = lng;
+        mUnderground = "";
+        mCleaning = "";
+
+    }
+
+
     public String getPlaceId() {
         return mPlaceId;
     }
 
     public String getTrashType() {
         return mTrashType;
-    }
-
-    public int getBinId() {
-        return mBinId;
     }
 
     public String getUnderground() {
