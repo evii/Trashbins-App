@@ -2,12 +2,7 @@ apply plugin: 'com.android.application'
 
 android {
     signingConfigs {
-        config {
-            keyAlias 'MyAndroidKey'
-            keyPassword 'odpadtrash123'
-            storeFile file('../app/keystore/key.jks')
-            storePassword 'trashodpad012'
-        }
+
     }
     compileSdkVersion 27
     buildToolsVersion "28.0.1"
