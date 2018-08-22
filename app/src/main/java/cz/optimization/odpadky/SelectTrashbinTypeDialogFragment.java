@@ -32,7 +32,7 @@ public class SelectTrashbinTypeDialogFragment extends DialogFragment {
         }
     }
     // This is the OK button listener for the alert dialog,
-    // which in turn invokes the method onPositiveClick(position)
+    // which in turn invokes the method onPositiveClick(selectedType)
     //of the hosting activity which is supposed to implement it
 
     DialogInterface.OnClickListener positiveListener = new DialogInterface.OnClickListener() {
@@ -50,7 +50,7 @@ public class SelectTrashbinTypeDialogFragment extends DialogFragment {
         int position;
         if (getArguments() != null) {
             Bundle bundle = getArguments();
-            position = bundle.getInt("position");
+            position = bundle.getInt("selectedType");
 
         } else {
             position = 0;

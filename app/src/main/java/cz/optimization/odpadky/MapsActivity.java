@@ -1,17 +1,11 @@
 package cz.optimization.odpadky;
 
 import android.app.ActivityOptions;
-import android.app.ProgressDialog;
-import android.arch.lifecycle.MutableLiveData;
-import android.arch.lifecycle.Observer;
-import android.arch.lifecycle.ViewModelProvider;
-import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.ArrayMap;
@@ -27,33 +21,26 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import com.google.maps.android.clustering.Cluster;
 import com.google.maps.android.clustering.ClusterManager;
 
-import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import cz.optimization.odpadky.objects.Container;
 import cz.optimization.odpadky.retrofit_data.APIClient;
-import cz.optimization.odpadky.retrofit_data.FetchContainersAtPlaceViewModel;
-import cz.optimization.odpadky.retrofit_data.FetchContainersAtPlaceViewModelFactory;
-import cz.optimization.odpadky.retrofit_data.FetchContainersTypeViewModel;
-import cz.optimization.odpadky.retrofit_data.FetchContainersTypeViewModelFactory;
 import cz.optimization.odpadky.retrofit_data.GetDataService;
 import cz.optimization.odpadky.objects.Place;
 import cz.optimization.odpadky.ui.DetailActivity;
 import cz.optimization.odpadky.ui.TrashbinAppWidgetProvider;
 import cz.optimization.odpadky.ui.clusters.CustomClusterRenderer;
 import cz.optimization.odpadky.ui.clusters.TrashbinClusterItem;
-import cz.optimization.odpadky.ui.info_window.CustomInfoWindow;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -63,12 +50,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private GoogleMap mMap;
     private Gson gson;
-    public static int position = 0;
+    public static int selectedType = 0;
     private double mHomeLatitude;
     private double mHomeLongitude;
     private float mCameraZoom;
 
-    private static final String POSITION_KEY = "position";
+    private static final String POSITION_KEY = "selectedType";
     private static final String LAT_KEY = "latitude";
     private static final String LNG_KEY = "longitude";
     private static final String ZOOM_KEY = "zoom";
@@ -100,8 +87,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private ProgressBar mProgressBar;
     private Marker mMarker;
+    private Marker markerWithInfoWindowShown;
 
-    private Boolean isInfoDisplayed;
+    private boolean isInfoDisplayed;
     private String mPlaceIdInfo;
 
 
@@ -114,7 +102,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         gson = new Gson();
         isInfoDisplayed = false;
 
-        //intial position of map
+        //intial selectedType of map
         mHomeLatitude = 50.0889853530001;
         mHomeLongitude = 14.4723441130001;
         mCameraZoom = 15.5f;
@@ -124,7 +112,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-        // restoring position and zoom on the map
+        // restoring selectedType and zoom on the map
         if (savedInstanceState != null) {
             if (savedInstanceState.containsKey(POSITION_KEY)) {
                 previousPosition = savedInstanceState.getInt(POSITION_KEY);
@@ -136,17 +124,17 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             mCameraZoom = savedInstanceState.getFloat(ZOOM_KEY);
 
         } else {
-            previousPosition = position;
+            previousPosition = selectedType;
         }
 
         mProgressBar = findViewById(R.id.progress_bar);
     }
 
-    //saving position and zoom on the map
+    //saving selectedType and zoom on the map
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putInt(POSITION_KEY, position);
+        outState.putInt(POSITION_KEY, selectedType);
 
         LatLng mapPosition = mMap.getProjection().getVisibleRegion().latLngBounds.getCenter();
         float zoom = mMap.getCameraPosition().zoom;
@@ -163,35 +151,36 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (mAllContainersList != null) {
             outState.putParcelableArrayList(LISTCONTAINERS_KEY, new ArrayList<Container>(mAllContainersList));
         }
-        //  outState.putString(LISTCONTAINERSCOORD_KEY, mContainersCoordinatesListString);
 
+        // save open info window in case of rotation
 
-        // save open info window in cae of rotation
         if (mMarker != null) {
-            Log.v("infowzobrons", "marker is not null");
-            isInfoDisplayed = mMarker.isInfoWindowShown();
-
-            if (isInfoDisplayed) {
-                mPlaceIdInfo = mMarker.getSnippet();
-//                Log.v("infowzobrons", mPlaceIdInfo);
-                //markerLat = mMarker.getPosition().latitude;
-                //markerLng = mMarker.getPosition().longitude;
-                outState.putString(INFOPLACEID_KEY, mPlaceIdInfo);
-                //  outState.putDouble(MARKERLAT_KEY, markerLat);
-                //   outState.putDouble(MARKERLNG_KEY, markerLng);
-                outState.putParcelable(CLUSTERITEM_KEY, trashbinClusterItem);
-                Log.v("infowzobrsav", String.valueOf(trashbinClusterItem));
-                /*   mClusterMarkerMap.put(trashbinClusterItem, mMarker);
-                String markerId = mMarker.getId();
-                outState.putString("markerId", markerId);*/
-
+            if (mMarker.isInfoWindowShown()) {
+                isInfoDisplayed = true;
             }
-            Log.v("infowzobrsav", String.valueOf(isInfoDisplayed));
-            outState.putBoolean(INFOWINDOW_KEY, isInfoDisplayed);
+        } else if (markerWithInfoWindowShown != null) {
+            if (markerWithInfoWindowShown.isInfoWindowShown()) {
+                isInfoDisplayed = true;
+            }
+        } else {
+            isInfoDisplayed = false;
         }
+
+        Log.v("infowzpropad", String.valueOf(isInfoDisplayed));
+        if (isInfoDisplayed) {
+            if (mMarker != null) {
+            mPlaceIdInfo = mMarker.getSnippet();}
+            else {
+                mPlaceIdInfo = markerWithInfoWindowShown.getSnippet();
+            }
+            outState.putString(INFOPLACEID_KEY, mPlaceIdInfo);
+            outState.putParcelable(CLUSTERITEM_KEY, trashbinClusterItem);
+        }
+        outState.putBoolean(INFOWINDOW_KEY, isInfoDisplayed);
     }
 
-    // restoring position and zoom on the map
+
+    // restoring selectedType and zoom on the map
     @Override
     public void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
@@ -201,19 +190,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         mListPlaces = savedInstanceState.getParcelableArrayList(LISTPLACES_KEY);
         mAllContainersList = savedInstanceState.getParcelableArrayList(LISTCONTAINERS_KEY);
-        //   mContainersCoordinatesListString = savedInstanceState.getString(LISTCONTAINERSCOORD_KEY);
 
         // restore open info window after rotation
         isInfoDisplayed = savedInstanceState.getBoolean(INFOWINDOW_KEY);
-        Log.v("infowzobrres", isInfoDisplayed + "");
         if (isInfoDisplayed) {
             mPlaceIdInfo = savedInstanceState.getString(INFOPLACEID_KEY);
-            //  markerLat = savedInstanceState.getDouble(MARKERLAT_KEY);
-            //markerLng = savedInstanceState.getDouble(MARKERLNG_KEY);
             trashbinClusterItem = savedInstanceState.getParcelable(CLUSTERITEM_KEY);
-
-            Log.v("infowzobrres", mPlaceIdInfo + "");
-            Log.v("infowzobrres", trashbinClusterItemInfo + "");
         }
     }
 
@@ -239,7 +221,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             Bundle b = new Bundle();
 
             // Storing the selected item's index in the bundle object
-            b.putInt("position", position);
+            b.putInt("selectedType", selectedType);
 
             // Setting the bundle object to the dialog fragment object
             dialog.setArguments(b);
@@ -263,8 +245,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMap.setOnMarkerClickListener(mClusterManager);
         renderer = new CustomClusterRenderer(this, mMap, mClusterManager);
         mClusterManager.setRenderer(renderer);
-        mClusterManager.getMarkerCollection()
-                .setOnInfoWindowAdapter(new CustomInfoWindow(MapsActivity.this));
 
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(mHomeLatitude, mHomeLongitude), mCameraZoom));
 
@@ -285,56 +265,56 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 case TrashbinAppWidgetProvider.ALL_BUTTON:
                     mMap.clear();
                     setTitle(R.string.all_title);
-                    position = 0;
+                    selectedType = 0;
                     fetchPlaces();
                     break;
 
                 case TrashbinAppWidgetProvider.GLASS_BUTTON:
                     mMap.clear();
                     setTitle(R.string.glass_title);
-                    position = 1;
+                    selectedType = 1;
                     fetchContainersType(getResources().getString(R.string.glass));
                     break;
 
                 case TrashbinAppWidgetProvider.CLEAR_GLASS_BUTTON:
                     mMap.clear();
                     setTitle(R.string.clear_glass_title);
-                    position = 2;
+                    selectedType = 2;
                     fetchContainersType(getResources().getString(R.string.clear_glass));
                     break;
 
                 case TrashbinAppWidgetProvider.METAL_BUTTON:
                     mMap.clear();
                     setTitle(R.string.metal_title);
-                    position = 3;
+                    selectedType = 3;
                     fetchContainersType(getResources().getString(R.string.metal));
                     break;
 
                 case TrashbinAppWidgetProvider.PLASTIC_BUTTON:
                     mMap.clear();
                     setTitle(R.string.plastic_title);
-                    position = 4;
+                    selectedType = 4;
                     fetchContainersType(getResources().getString(R.string.plastic));
                     break;
 
                 case TrashbinAppWidgetProvider.PAPER_BUTTON:
                     mMap.clear();
                     setTitle(R.string.paper_title);
-                    position = 5;
+                    selectedType = 5;
                     fetchContainersType(getResources().getString(R.string.paper));
                     break;
 
                 case TrashbinAppWidgetProvider.CARTON_BUTTON:
                     mMap.clear();
                     setTitle(R.string.carton_title);
-                    position = 6;
+                    selectedType = 6;
                     fetchContainersType(getResources().getString(R.string.carton));
                     break;
 
                 case TrashbinAppWidgetProvider.ELECTRICAL_BUTTON:
                     mMap.clear();
                     setTitle(R.string.electrical_title);
-                    position = 7;
+                    selectedType = 7;
                     fetchContainersType(getResources().getString(R.string.electrical));
                     break;
             }
@@ -344,7 +324,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     //Filter in action bar
     @Override
     public void onPositiveClick(int position) {
-        this.position = position;
+        this.selectedType = position;
 
         switch (position) {
             case 0:
@@ -415,9 +395,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-    ///////////////////////////////////////
-    //     FETCH PLACES                  //
-    //////////////////////////////////////
+///////////////////////////////////////
+//     FETCH PLACES                  //
+//////////////////////////////////////
 
     // helper method to get the places from the API - using retrofit + setting onclicklisteners on markers
     public void fetchPlaces() {
@@ -436,7 +416,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                     mListPlaces = response.body();
 
-                    //  mListPlacesString = gson.toJson(mListPlaces);
                     fetchPlacesHelper(mListPlaces);
 
                     mProgressBar.setVisibility(View.GONE);
@@ -450,10 +429,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             });
             // the API call was already done and data about places fetched and saved.
         } else {
-
-           /* Type type = new TypeToken<List<Place>>() {
-            }.getType();
-            mListPlaces = gson.fromJson(mListPlacesString, type);*/
             fetchPlacesHelper(mListPlaces);
         }
     }
@@ -468,39 +443,33 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
         //restore Info window if it was displayed before
-        Marker markerWithInfoWindowShown;
+
         MarkerOptions markerOptions = null;
 
+        Log.v("infowzobr", String.valueOf(isInfoDisplayed));
         if (isInfoDisplayed) {
-           /* for (TrashbinClusterItem item : itemsToAdd) {
+            Log.v("infowzobr", String.valueOf(isInfoDisplayed));
+            for (TrashbinClusterItem item : itemsToAdd) {
                 String placeId = item.getSnippet();
                 if (placeId.equals(mPlaceIdInfo)) {
                     LatLng position = item.getPosition();
 
                     trashbinClusterItem = item;
+                    BitmapDescriptor color = assignMarkerColor(selectedType);
                     markerOptions = new MarkerOptions().position(item.getPosition())
-                            .title(item.getTitle()).snippet(item.getSnippet());
-
+                            .title(item.getTitle()).snippet(item.getSnippet()).icon(color);
+                    ;
 
                 }
 
             }
-*/
-
-
 
             //get Containers for given placeId
             fetchContainersAtPlace(mPlaceIdInfo);
 
+            markerWithInfoWindowShown = mMap.addMarker(markerOptions);
 
-
-
-
-          /*  markerWithInfoWindowShown = mMap.addMarker(markerOptions);
-            Log.v("infowzobr", String.valueOf(markerWithInfoWindowShown) + " ");
-
-
-            markerWithInfoWindowShown.showInfoWindow();*/
+            markerWithInfoWindowShown.showInfoWindow();
 
         }
 
@@ -529,8 +498,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                         //get Containers for given placeId
                         fetchContainersAtPlace(placeId);
-                      //  Marker marker = renderer.getMarker(trashbinClusterItem);
-                    //    marker.showInfoWindow();
+                        //  Marker marker = renderer.getMarker(trashbinClusterItem);
+                        //    marker.showInfoWindow();
 
                         return false;
 
@@ -564,9 +533,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         return ListItems;
     }
 
-    ///////////////////////////////////////
-    //     FETCH CONTAINERS AT PLACE     //
-    //////////////////////////////////////
+///////////////////////////////////////
+//     FETCH CONTAINERS AT PLACE     //
+//////////////////////////////////////
 
 
     // helper method to get details of containers in a place
@@ -589,9 +558,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 editor.putString(PREFS_KEY, containersString);
                 editor.commit();
 
+
                 mMarker = renderer.getMarker(trashbinClusterItem);
-                if(mMarker != null){
-                mMarker.showInfoWindow();}
+                if (mMarker != null) {
+                    mMarker.showInfoWindow();
+                }
 
 
                 mProgressBar.setVisibility(View.GONE);
@@ -606,9 +577,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         });
     }
 
-    ///////////////////////////////////////
-    //     FETCH CONTAINERS BY TYPE     //
-    //////////////////////////////////////
+///////////////////////////////////////
+//     FETCH CONTAINERS BY TYPE     //
+//////////////////////////////////////
 
 
     // helper method to display containers of selected type
@@ -673,7 +644,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     }
 
-    // helper method to assign coordinates to containers
+// helper method to assign coordinates to containers
 
     private class AssignCoordinatesTask extends AsyncTask<String, Void, List<Container>> {
 
@@ -742,7 +713,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         protected void onPostExecute(List<Container> containerCoordinatesList) {
 
             mClusterManager.clearItems();
-            mClusterManager.addItems(getContainersLocation(containerCoordinatesList));
+            List<TrashbinClusterItem> itemsToAdd = getContainersLocation(containerCoordinatesList);
+            mClusterManager.addItems(itemsToAdd);
             mClusterManager.cluster();
 
             // onclick listener for cluster
@@ -779,8 +751,39 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     });
 
 
+            //restore Info window if it was displayed before
+
+            MarkerOptions markerOptions = null;
+
+            if (isInfoDisplayed) {
+                for (TrashbinClusterItem item : itemsToAdd) {
+                    String placeId = item.getSnippet();
+                    if (placeId.equals(mPlaceIdInfo)) {
+                        LatLng position = item.getPosition();
+
+                        trashbinClusterItem = item;
+                        BitmapDescriptor color = assignMarkerColor(selectedType);
+                        markerOptions = new MarkerOptions().position(item.getPosition())
+                                .title(item.getTitle()).snippet(item.getSnippet()).icon(color);
+
+
+                    }
+
+                }
+
+                //get Containers for given placeId
+                fetchContainersAtPlace(mPlaceIdInfo);
+                if(markerOptions !=null){
+                    markerWithInfoWindowShown = mMap.addMarker(markerOptions);
+                    markerWithInfoWindowShown.showInfoWindow();
+                }
+
+
+            }
+
             mProgressBar.setVisibility(View.GONE);
         }
+
     }
 
 
@@ -808,4 +811,56 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
         return ListItems;
     }
+
+    // helper method to choose right marker color
+
+    private BitmapDescriptor assignMarkerColor(int selectedType) {
+
+        //different markers color for each trash type
+        BitmapDescriptor markerDescriptor;
+
+        switch (selectedType) {
+            // all
+            case 0:
+                markerDescriptor = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN);
+                break;
+            // glass
+            case 1:
+                markerDescriptor = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE);
+                break;
+            // clear glass
+            case 2:
+                markerDescriptor = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_CYAN);
+                break;
+            // metal
+            case 3:
+                markerDescriptor = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET);
+                break;
+            // plastic
+            case 4:
+                markerDescriptor = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW);
+                break;
+            // paper
+            case 5:
+                markerDescriptor = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE);
+                break;
+            // carton
+            case 6:
+                markerDescriptor = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE);
+                break;
+            //electrical
+            case 7:
+                markerDescriptor = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA);
+                break;
+
+            default:
+                markerDescriptor = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN);
+                break;
+        }
+        return markerDescriptor;
+
+
+    }
+
+
 }

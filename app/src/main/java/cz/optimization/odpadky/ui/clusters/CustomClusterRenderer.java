@@ -33,7 +33,7 @@ public class CustomClusterRenderer extends DefaultClusterRenderer<TrashbinCluste
         //different markers color for each trash type
         final BitmapDescriptor markerDescriptor;
 
-        switch (MapsActivity.position) {
+        switch (MapsActivity.selectedType) {
             // all
             case 0:
                 markerDescriptor = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN);
