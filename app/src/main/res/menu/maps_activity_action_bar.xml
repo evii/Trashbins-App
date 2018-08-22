@@ -4,7 +4,7 @@
     <item
         android:id="@+id/action_filtr"
         android:orderInCategory="1"
-        android:title="Filter"
+        android:title="@string/filter"
         android:icon="@drawable/filter"
         android:contentDescription="@string/filter_icon"
         app:showAsAction="always"/>

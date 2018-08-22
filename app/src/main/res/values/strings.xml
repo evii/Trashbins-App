@@ -44,6 +44,7 @@
     <string name="filter_litter_title">Type of trashbin</string>
     <string name="filter_litter_title_dialog">Select type of trashbin:</string>
 
+    <string name="filter">Filter</string>
     <string name="watched">Watched</string>
     <string name="watch_list">Places in watch list:</string>
 
@@ -60,5 +61,7 @@
     <string name="underground">underground</string>
     <string name="aboveground">above-ground</string>
     <string name="NA">N/A</string>
+    <string name="Xevery">x every </string>
+
 
 </resources>

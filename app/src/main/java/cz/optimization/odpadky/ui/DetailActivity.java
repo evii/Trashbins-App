@@ -82,7 +82,7 @@ public class DetailActivity extends AppCompatActivity implements PlacesWatchedDi
         //recyclerview for containers
         mDetailRecyclerView = findViewById(R.id.detail_recycler_view);
         mDetailRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-        detailActivityAdapter = new DetailActivityRecyclerViewAdapter(containersList);
+        detailActivityAdapter = new DetailActivityRecyclerViewAdapter(containersList,this);
 
         mDetailRecyclerView.setAdapter(detailActivityAdapter);
 
@@ -279,7 +279,7 @@ public class DetailActivity extends AppCompatActivity implements PlacesWatchedDi
                 Gson gson = new Gson();
                 List<Container> watchedContainersList = gson.fromJson(containersListString, type);
 
-                detailActivityAdapter = new DetailActivityRecyclerViewAdapter(watchedContainersList);
+                detailActivityAdapter = new DetailActivityRecyclerViewAdapter(watchedContainersList, getBaseContext());
                 mDetailRecyclerView.setAdapter(detailActivityAdapter);
 
                 title = placeWatched.getTitle();

@@ -210,7 +210,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             mPlaceIdInfo = savedInstanceState.getString(INFOPLACEID_KEY);
             //  markerLat = savedInstanceState.getDouble(MARKERLAT_KEY);
             //markerLng = savedInstanceState.getDouble(MARKERLNG_KEY);
-            trashbinClusterItemInfo = savedInstanceState.getParcelable(CLUSTERITEM_KEY);
+            trashbinClusterItem = savedInstanceState.getParcelable(CLUSTERITEM_KEY);
 
             Log.v("infowzobrres", mPlaceIdInfo + "");
             Log.v("infowzobrres", trashbinClusterItemInfo + "");
@@ -472,12 +472,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         MarkerOptions markerOptions = null;
 
         if (isInfoDisplayed) {
-            for (TrashbinClusterItem item : itemsToAdd) {
+           /* for (TrashbinClusterItem item : itemsToAdd) {
                 String placeId = item.getSnippet();
                 if (placeId.equals(mPlaceIdInfo)) {
                     LatLng position = item.getPosition();
 
-
+                    trashbinClusterItem = item;
                     markerOptions = new MarkerOptions().position(item.getPosition())
                             .title(item.getTitle()).snippet(item.getSnippet());
 
@@ -485,15 +485,24 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }
 
             }
+*/
 
-            markerWithInfoWindowShown = mMap.addMarker(markerOptions);
+
+
+            //get Containers for given placeId
+            fetchContainersAtPlace(mPlaceIdInfo);
+
+
+
+
+
+          /*  markerWithInfoWindowShown = mMap.addMarker(markerOptions);
             Log.v("infowzobr", String.valueOf(markerWithInfoWindowShown) + " ");
 
 
-            markerWithInfoWindowShown.showInfoWindow();
+            markerWithInfoWindowShown.showInfoWindow();*/
 
         }
-
 
         // onclick listener for cluster
         mClusterManager.setOnClusterClickListener(
@@ -520,8 +529,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                         //get Containers for given placeId
                         fetchContainersAtPlace(placeId);
-                        Marker marker = renderer.getMarker(trashbinClusterItem);
-                        marker.showInfoWindow();
+                      //  Marker marker = renderer.getMarker(trashbinClusterItem);
+                    //    marker.showInfoWindow();
 
                         return false;
 
@@ -581,7 +590,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 editor.commit();
 
                 mMarker = renderer.getMarker(trashbinClusterItem);
-                mMarker.showInfoWindow();
+                if(mMarker != null){
+                mMarker.showInfoWindow();}
+
 
                 mProgressBar.setVisibility(View.GONE);
 

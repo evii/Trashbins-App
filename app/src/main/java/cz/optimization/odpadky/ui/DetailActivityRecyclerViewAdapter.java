@@ -1,5 +1,6 @@
 package cz.optimization.odpadky.ui;
 
+import android.content.Context;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -16,9 +17,11 @@ import cz.optimization.odpadky.objects.Container;
 
 public class DetailActivityRecyclerViewAdapter extends RecyclerView.Adapter<DetailActivityRecyclerViewAdapter.RecyclerViewHolder> {
     private List<Container> mContainerList;
+    private Context mContext;
 
-    public DetailActivityRecyclerViewAdapter(List<Container> containersList) {
+    public DetailActivityRecyclerViewAdapter(List<Container> containersList, Context context) {
         mContainerList = containersList;
+        mContext = context;
     }
 
     @Override
@@ -52,7 +55,8 @@ public class DetailActivityRecyclerViewAdapter extends RecyclerView.Adapter<Deta
         Log.v("cleaning", repeat);
         String period = cleaningString.substring(positionOfP + 1);
         Log.v("cleaning", period);
-        holder.cleaningTextView.setText(repeat + "x every " + period);
+        String cleaningFinal = repeat + mContext.getResources().getString(R.string.Xevery) + period;
+        holder.cleaningTextView.setText(cleaningFinal);
 
         String underground = container.getUnderground();
         if (underground.equals("true")) {
