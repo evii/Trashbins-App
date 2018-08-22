@@ -25,6 +25,7 @@ import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
 import java.util.List;
 
+import cz.optimization.odpadky.MapsActivity;
 import cz.optimization.odpadky.R;
 import cz.optimization.odpadky.objects.Container;
 import cz.optimization.odpadky.room_data.PlaceWatched;
@@ -62,9 +63,9 @@ public class DetailActivity extends AppCompatActivity implements PlacesWatchedDi
         // gets data from MapsActivity as parent activity
         if (getIntent() != null) {
             Intent intent = getIntent();
-            mPlaceId = intent.getStringExtra("placeId");
-            title = intent.getStringExtra("title");
-            containersListString = intent.getStringExtra("containersList");
+            mPlaceId = intent.getStringExtra(MapsActivity.PLACEID_KEY);
+            title = intent.getStringExtra(MapsActivity.TITLE_KEY);
+            containersListString = intent.getStringExtra(MapsActivity.CONTAINERS_KEY);
         }
 
         // retains data after orientation change
@@ -82,7 +83,7 @@ public class DetailActivity extends AppCompatActivity implements PlacesWatchedDi
         //recyclerview for containers
         mDetailRecyclerView = findViewById(R.id.detail_recycler_view);
         mDetailRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-        detailActivityAdapter = new DetailActivityRecyclerViewAdapter(containersList,this);
+        detailActivityAdapter = new DetailActivityRecyclerViewAdapter(containersList, this);
 
         mDetailRecyclerView.setAdapter(detailActivityAdapter);
 

@@ -61,23 +61,21 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private static final String ZOOM_KEY = "zoom";
     private static final String LISTPLACES_KEY = "listPlaces";
     private static final String LISTCONTAINERS_KEY = "listContainers";
-    private static final String LISTCONTAINERSCOORD_KEY = "listContainersCoord";
     private static final String INFOPLACEID_KEY = "infowindowplaceid";
     private static final String CLUSTERITEM_KEY = "clusteritem";
     private static final String INFOWINDOW_KEY = "infowindow";
+    public static final String PLACEID_KEY = "placeId";
+    public static final String TITLE_KEY = "title";
+    public static final String CONTAINERS_KEY = "containersList";
 
     private int previousPosition;
 
     private ClusterManager<TrashbinClusterItem> mClusterManager;
     private List<Place> mListPlaces;
     private List<Container> mAllContainersList;
-    private String mListPlacesString;
-    private String mAllContainersListString;
 
     private CustomClusterRenderer renderer;
     private TrashbinClusterItem trashbinClusterItem;
-    private TrashbinClusterItem trashbinClusterItemInfo;
-    private String mContainersCoordinatesListString;
 
     public static final String PREFS_NAME = "Containers_object";
     public static final String PREFS_KEY = "Containers_key";
@@ -153,7 +151,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
         // save open info window in case of rotation
-
         if (mMarker != null) {
             if (mMarker.isInfoWindowShown()) {
                 isInfoDisplayed = true;
@@ -166,11 +163,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             isInfoDisplayed = false;
         }
 
-        Log.v("infowzpropad", String.valueOf(isInfoDisplayed));
         if (isInfoDisplayed) {
             if (mMarker != null) {
-            mPlaceIdInfo = mMarker.getSnippet();}
-            else {
+                mPlaceIdInfo = mMarker.getSnippet();
+            } else {
                 mPlaceIdInfo = markerWithInfoWindowShown.getSnippet();
             }
             outState.putString(INFOPLACEID_KEY, mPlaceIdInfo);
@@ -212,6 +208,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public boolean onOptionsItemSelected(MenuItem item) {
 
         int id = item.getItemId();
+        isInfoDisplayed = false;
 
         if (id == R.id.action_filtr) {
             FragmentManager fm = getSupportFragmentManager();
@@ -383,9 +380,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             Log.d(TAG, "ContainersList not contained in Shared preferences");
         }
 
-        intent.putExtra("placeId", placeId);
-        intent.putExtra("title", title);
-        intent.putExtra("containersList", containersList);
+        intent.putExtra(PLACEID_KEY, placeId);
+        intent.putExtra(TITLE_KEY, title);
+        intent.putExtra(CONTAINERS_KEY, containersList);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation(this);
@@ -415,9 +412,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 public void onResponse(Call<List<Place>> call, Response<List<Place>> response) {
 
                     mListPlaces = response.body();
-
                     fetchPlacesHelper(mListPlaces);
-
                     mProgressBar.setVisibility(View.GONE);
                 }
 
@@ -427,6 +422,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     Toast.makeText(MapsActivity.this, R.string.No_internet_connection, Toast.LENGTH_LONG).show();
                 }
             });
+
             // the API call was already done and data about places fetched and saved.
         } else {
             fetchPlacesHelper(mListPlaces);
@@ -441,36 +437,25 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mClusterManager.addItems(itemsToAdd);
         mClusterManager.cluster();
 
-
         //restore Info window if it was displayed before
-
         MarkerOptions markerOptions = null;
 
-        Log.v("infowzobr", String.valueOf(isInfoDisplayed));
         if (isInfoDisplayed) {
-            Log.v("infowzobr", String.valueOf(isInfoDisplayed));
             for (TrashbinClusterItem item : itemsToAdd) {
                 String placeId = item.getSnippet();
                 if (placeId.equals(mPlaceIdInfo)) {
-                    LatLng position = item.getPosition();
 
                     trashbinClusterItem = item;
                     BitmapDescriptor color = assignMarkerColor(selectedType);
                     markerOptions = new MarkerOptions().position(item.getPosition())
                             .title(item.getTitle()).snippet(item.getSnippet()).icon(color);
-                    ;
-
                 }
-
             }
 
-            //get Containers for given placeId
+
             fetchContainersAtPlace(mPlaceIdInfo);
-
             markerWithInfoWindowShown = mMap.addMarker(markerOptions);
-
             markerWithInfoWindowShown.showInfoWindow();
-
         }
 
         // onclick listener for cluster
@@ -498,11 +483,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                         //get Containers for given placeId
                         fetchContainersAtPlace(placeId);
-                        //  Marker marker = renderer.getMarker(trashbinClusterItem);
-                        //    marker.showInfoWindow();
 
                         return false;
-
                     }
                 });
 
@@ -563,10 +545,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 if (mMarker != null) {
                     mMarker.showInfoWindow();
                 }
-
-
                 mProgressBar.setVisibility(View.GONE);
-
             }
 
             @Override
@@ -598,7 +577,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 @Override
                 public void onResponse(Call<List<Place>> call, Response<List<Place>> response) {
                     mListPlaces = response.body();
-                    /*mListPlacesString = gson.toJson(mListPlaces);*/
                 }
 
                 @Override
@@ -606,13 +584,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     Toast.makeText(MapsActivity.this, R.string.No_internet_connection, Toast.LENGTH_LONG).show();
                 }
             });
-        } else {
-
-           /* Type type = new TypeToken<List<Place>>() {
-            }.getType();
-            mListPlaces = gson.fromJson(mListPlacesString, type);*/
         }
-
 
         if (mAllContainersList == null) {
 
@@ -622,10 +594,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 public void onResponse(Call<List<Container>> call, Response<List<Container>> response) {
 
                     mAllContainersList = response.body();
-                    //  mAllContainersListString = gson.toJson(allContainersList);
-
                     new AssignCoordinatesTask().execute(trashTypeSelected);
-
                 }
 
                 @Override
@@ -635,13 +604,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }
             });
 
-
         } else {
-
             new AssignCoordinatesTask().execute(trashTypeSelected);
-
         }
-
     }
 
 // helper method to assign coordinates to containers
@@ -660,15 +625,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             // create new containers list with coordinates
             List<Container> containerCoordinatesList = new ArrayList<Container>();
-            //     if (mContainersCoordinatesListString == null) {
-
             String trashType = "";
-
             String trashTypeSel = params[0];
-
-                /*Type type = new TypeToken<List<Container>>() {
-                }.getType();
-                List<Container> allContainersList = gson.fromJson(mAllContainersListString, type);*/
 
             final ArrayMap<String, Place> allPlacesMap;
             //convert list of places with coordinates into array map
@@ -689,23 +647,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     double lng = selectedPlace.getLongitude();
                     String title = selectedPlace.getTitle();
 
-                    String underground = container.getUnderground();
-                    String cleaning = container.getCleaning();
                     int progress = container.getProgress();
 
                     Container containerCoordinates = new Container(placeId, trashType, progress, lat, lng, title);
                     containerCoordinatesList.add(containerCoordinates);
                 }
-
-                //   mContainersCoordinatesListString = gson.toJson(containerCoordinatesList);
             }
 
-           /* } else {
-                Log.v("forloopNENInull", mContainersCoordinatesListString.substring(1,15));
-                Type type = new TypeToken<List<Container>>() {
-                }.getType();
-                containerCoordinatesList = gson.fromJson(mContainersCoordinatesListString, type);
-            }*/
             return containerCoordinatesList;
         }
 
@@ -759,28 +707,21 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 for (TrashbinClusterItem item : itemsToAdd) {
                     String placeId = item.getSnippet();
                     if (placeId.equals(mPlaceIdInfo)) {
-                        LatLng position = item.getPosition();
 
                         trashbinClusterItem = item;
                         BitmapDescriptor color = assignMarkerColor(selectedType);
                         markerOptions = new MarkerOptions().position(item.getPosition())
                                 .title(item.getTitle()).snippet(item.getSnippet()).icon(color);
-
-
                     }
-
                 }
 
                 //get Containers for given placeId
                 fetchContainersAtPlace(mPlaceIdInfo);
-                if(markerOptions !=null){
+                if (markerOptions != null) {
                     markerWithInfoWindowShown = mMap.addMarker(markerOptions);
                     markerWithInfoWindowShown.showInfoWindow();
                 }
-
-
             }
-
             mProgressBar.setVisibility(View.GONE);
         }
 
@@ -807,7 +748,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             // Adding the marker to the List
             ListItems.add(new TrashbinClusterItem(lat, lng, title, placeId));
-
         }
         return ListItems;
     }
@@ -858,9 +798,5 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 break;
         }
         return markerDescriptor;
-
-
     }
-
-
 }
