@@ -1,11 +1,14 @@
 package cz.optimization.odpadky;
 
 import android.app.ActivityOptions;
+import android.arch.lifecycle.Observer;
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.ArrayMap;
@@ -35,12 +38,15 @@ import java.util.List;
 
 import cz.optimization.odpadky.objects.Container;
 import cz.optimization.odpadky.retrofit_data.APIClient;
+import cz.optimization.odpadky.retrofit_data.ContainersViewModel;
 import cz.optimization.odpadky.retrofit_data.GetDataService;
 import cz.optimization.odpadky.objects.Place;
+import cz.optimization.odpadky.retrofit_data.PlacesViewModel;
 import cz.optimization.odpadky.ui.DetailActivity;
 import cz.optimization.odpadky.ui.TrashbinAppWidgetProvider;
 import cz.optimization.odpadky.ui.clusters.CustomClusterRenderer;
 import cz.optimization.odpadky.ui.clusters.TrashbinClusterItem;
+import cz.optimization.odpadky.ui.info_window.CustomInfoWindow;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -59,8 +65,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private static final String LAT_KEY = "latitude";
     private static final String LNG_KEY = "longitude";
     private static final String ZOOM_KEY = "zoom";
-    private static final String LISTPLACES_KEY = "listPlaces";
-    private static final String LISTCONTAINERS_KEY = "listContainers";
     private static final String INFOPLACEID_KEY = "infowindowplaceid";
     private static final String CLUSTERITEM_KEY = "clusteritem";
     private static final String INFOWINDOW_KEY = "infowindow";
@@ -90,6 +94,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private boolean isInfoDisplayed;
     private String mPlaceIdInfo;
 
+    private PlacesViewModel placesViewModel;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -99,6 +105,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         sharedPreferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         gson = new Gson();
         isInfoDisplayed = false;
+        placesViewModel = ViewModelProviders.of(this).get(PlacesViewModel.class);
+
 
         //intial selectedType of map
         mHomeLatitude = 50.0889853530001;
@@ -141,40 +149,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         outState.putFloat(ZOOM_KEY, zoom);
         outState.putDouble(LAT_KEY, lat);
         outState.putDouble(LNG_KEY, lng);
-
-        //saving already fetched data from API
-        if (mListPlaces != null) {
-            outState.putParcelableArrayList(LISTPLACES_KEY, new ArrayList<Place>(mListPlaces));
-        }
-        if (mAllContainersList != null) {
-            outState.putParcelableArrayList(LISTCONTAINERS_KEY, new ArrayList<Container>(mAllContainersList));
-        }
-
-        // save open info window in case of rotation
-        if (mMarker != null) {
-            if (mMarker.isInfoWindowShown()) {
-                isInfoDisplayed = true;
-            }
-        } else if (markerWithInfoWindowShown != null) {
-            if (markerWithInfoWindowShown.isInfoWindowShown()) {
-                isInfoDisplayed = true;
-            }
-        } else {
-            isInfoDisplayed = false;
-        }
-
-        if (isInfoDisplayed) {
-            if (mMarker != null) {
-                mPlaceIdInfo = mMarker.getSnippet();
-            } else {
-                mPlaceIdInfo = markerWithInfoWindowShown.getSnippet();
-            }
-            outState.putString(INFOPLACEID_KEY, mPlaceIdInfo);
-            outState.putParcelable(CLUSTERITEM_KEY, trashbinClusterItem);
-        }
-        outState.putBoolean(INFOWINDOW_KEY, isInfoDisplayed);
     }
-
 
     // restoring selectedType and zoom on the map
     @Override
@@ -184,15 +159,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mHomeLongitude = savedInstanceState.getDouble(LNG_KEY);
         mCameraZoom = savedInstanceState.getFloat(ZOOM_KEY);
 
-        mListPlaces = savedInstanceState.getParcelableArrayList(LISTPLACES_KEY);
-        mAllContainersList = savedInstanceState.getParcelableArrayList(LISTCONTAINERS_KEY);
-
-        // restore open info window after rotation
-        isInfoDisplayed = savedInstanceState.getBoolean(INFOWINDOW_KEY);
-        if (isInfoDisplayed) {
-            mPlaceIdInfo = savedInstanceState.getString(INFOPLACEID_KEY);
-            trashbinClusterItem = savedInstanceState.getParcelable(CLUSTERITEM_KEY);
-        }
     }
 
     @Override
@@ -242,11 +208,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMap.setOnMarkerClickListener(mClusterManager);
         renderer = new CustomClusterRenderer(this, mMap, mClusterManager);
         mClusterManager.setRenderer(renderer);
+        mClusterManager.getMarkerCollection()
+                .setOnInfoWindowAdapter(new CustomInfoWindow(MapsActivity.this));
 
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(mHomeLatitude, mHomeLongitude), mCameraZoom));
 
         // opening first screen
         onPositiveClick(previousPosition);
+        Log.v("OnsaveLiveData", "onPositiveClick " + String.valueOf(previousPosition));
 
         //WIGDET - display correct containers after clicking from the widget
         String widgetClicked = "";
@@ -259,7 +228,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             widgetClicked = extras.getString(TrashbinAppWidgetProvider.WIDGET_CLICKED_KEY);
 
             switch (widgetClicked) {
+
                 case TrashbinAppWidgetProvider.ALL_BUTTON:
+                    Log.v("OnsaveLiveData", "widget " + widgetClicked);
                     mMap.clear();
                     setTitle(R.string.all_title);
                     selectedType = 0;
@@ -340,6 +311,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 break;
 
             case 3:
+
                 setTitle(R.string.metal_title);
                 fetchContainersType(getResources().getString(R.string.metal));
                 break;
@@ -363,7 +335,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 setTitle(R.string.electrical_title);
                 fetchContainersType(getResources().getString(R.string.electrical));
                 break;
-
         }
     }
 
@@ -398,32 +369,40 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     // helper method to get the places from the API - using retrofit + setting onclicklisteners on markers
     public void fetchPlaces() {
+        mMap.clear();
 
         // call to API for places made for the first time
         if (mListPlaces == null) {
-            mProgressBar.setVisibility(View.VISIBLE);
-            mProgressBar.setIndeterminate(true);
-            mMap.clear();
 
-            GetDataService service = APIClient.getClient().create(GetDataService.class);
-            Call<List<Place>> call = service.getAllPlaces();
-            call.enqueue(new Callback<List<Place>>() {
+            //handle error when the data is not loaded
+            placesViewModel.getError().observe(this, new Observer<Boolean>() {
                 @Override
-                public void onResponse(Call<List<Place>> call, Response<List<Place>> response) {
-
-                    mListPlaces = response.body();
-                    fetchPlacesHelper(mListPlaces);
-                    mProgressBar.setVisibility(View.GONE);
-                }
-
-                @Override
-                public void onFailure(Call<List<Place>> call, Throwable t) {
-                    mProgressBar.setVisibility(View.GONE);
-                    Toast.makeText(MapsActivity.this, R.string.No_internet_connection, Toast.LENGTH_LONG).show();
+                public void onChanged(@Nullable Boolean error) {
+                    if (error)
+                        Toast.makeText(MapsActivity.this, R.string.No_internet_connection, Toast.LENGTH_LONG).show();
                 }
             });
 
-            // the API call was already done and data about places fetched and saved.
+            //handle progressbar
+            placesViewModel.getIsLoading().observe(this, new Observer<Boolean>() {
+                @Override
+                public void onChanged(@Nullable Boolean isLoading) {
+                    if (isLoading)
+                        mProgressBar.setVisibility(View.VISIBLE);
+                    else
+                        mProgressBar.setVisibility(View.GONE);
+                }
+            });
+
+            // fetch data about places
+            placesViewModel.getPlaces().observe(this, new Observer<List<Place>>() {
+                @Override
+                public void onChanged(@Nullable List<Place> placesList) {
+                    mListPlaces = placesList;
+                    fetchPlacesHelper(placesList);
+                }
+            });
+
         } else {
             fetchPlacesHelper(mListPlaces);
         }
@@ -451,7 +430,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                             .title(item.getTitle()).snippet(item.getSnippet()).icon(color);
                 }
             }
-
 
             fetchContainersAtPlace(mPlaceIdInfo);
             markerWithInfoWindowShown = mMap.addMarker(markerOptions);
@@ -519,7 +497,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 //     FETCH CONTAINERS AT PLACE     //
 //////////////////////////////////////
 
-
     // helper method to get details of containers in a place
     private void fetchContainersAtPlace(String placeId) {
         mProgressBar.setVisibility(View.VISIBLE);
@@ -560,7 +537,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 //     FETCH CONTAINERS BY TYPE     //
 //////////////////////////////////////
 
-
     // helper method to display containers of selected type
     public void fetchContainersType(final String trashTypeSelected) {
 
@@ -571,36 +547,72 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         GetDataService service = APIClient.getClient().create(GetDataService.class);
 
         if (mListPlaces == null) {
+            mMap.clear();
 
-            Call<List<Place>> call1 = service.getAllPlaces();
-            call1.enqueue(new Callback<List<Place>>() {
+            //handle error when the data is not loaded
+            placesViewModel.getError().observe(this, new Observer<Boolean>() {
                 @Override
-                public void onResponse(Call<List<Place>> call, Response<List<Place>> response) {
-                    mListPlaces = response.body();
+                public void onChanged(@Nullable Boolean error) {
+                    if (error)
+                        Toast.makeText(MapsActivity.this, R.string.No_internet_connection, Toast.LENGTH_LONG).show();
                 }
+            });
 
+            //handle progressbar
+            placesViewModel.getIsLoading().observe(this, new Observer<Boolean>() {
                 @Override
-                public void onFailure(Call<List<Place>> call, Throwable t) {
-                    Toast.makeText(MapsActivity.this, R.string.No_internet_connection, Toast.LENGTH_LONG).show();
+                public void onChanged(@Nullable Boolean isLoading) {
+                    if (isLoading)
+                        mProgressBar.setVisibility(View.VISIBLE);
+                    else
+                        mProgressBar.setVisibility(View.GONE);
+                }
+            });
+
+            placesViewModel.getPlaces().observe(this, new Observer<List<Place>>() {
+                @Override
+                public void onChanged(@Nullable List<Place> placesList) {
+                    mListPlaces = placesList;
+                    //  fetchPlacesHelper(placesList);
+                    mProgressBar.setVisibility(View.GONE);
+                    Log.v("OnsaveLiveData", "fetchContainersnull " + String.valueOf(mListPlaces.size()));
+
                 }
             });
         }
 
+
         if (mAllContainersList == null) {
 
-            Call<List<Container>> call2 = service.getContainersTypes();
-            call2.enqueue(new Callback<List<Container>>() {
-                @Override
-                public void onResponse(Call<List<Container>> call, Response<List<Container>> response) {
+            mMap.clear();
+            ContainersViewModel containersViewModel = ViewModelProviders.of(this).get(ContainersViewModel.class);
 
-                    mAllContainersList = response.body();
-                    new AssignCoordinatesTask().execute(trashTypeSelected);
+            //handle error when the data is not loaded
+            containersViewModel.getError().observe(this, new Observer<Boolean>() {
+                @Override
+                public void onChanged(@Nullable Boolean error) {
+                    if (error)
+                        Toast.makeText(MapsActivity.this, R.string.No_internet_connection, Toast.LENGTH_LONG).show();
                 }
+            });
 
+            //handle progressbar
+            containersViewModel.getIsLoading().observe(this, new Observer<Boolean>() {
                 @Override
-                public void onFailure(Call<List<Container>> call, Throwable t) {
-                    mProgressBar.setVisibility(View.GONE);
-                    Toast.makeText(MapsActivity.this, R.string.No_internet_connection, Toast.LENGTH_LONG).show();
+                public void onChanged(@Nullable Boolean isLoading) {
+                    if (isLoading)
+                        mProgressBar.setVisibility(View.VISIBLE);
+                    else
+                        mProgressBar.setVisibility(View.GONE);
+                }
+            });
+
+            containersViewModel.getContainers().observe(this, new Observer<List<Container>>() {
+                @Override
+                public void onChanged(@Nullable List<Container> containersList) {
+                    mAllContainersList = containersList;
+                    new AssignCoordinatesTask().execute(trashTypeSelected);
+
                 }
             });
 
@@ -632,6 +644,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             //convert list of places with coordinates into array map
             allPlacesMap = new ArrayMap<String, Place>();
             List<Place> placesList = mListPlaces;
+
             for (Place place : placesList) {
                 allPlacesMap.put(place.getPlaceId(), place);
             }
