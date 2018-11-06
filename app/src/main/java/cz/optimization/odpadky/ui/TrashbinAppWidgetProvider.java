@@ -8,7 +8,6 @@ import android.content.Intent;
 import android.util.Log;
 import android.widget.RemoteViews;
 
-import cz.optimization.odpadky.MapsActivity;
 import cz.optimization.odpadky.R;
 
 public class TrashbinAppWidgetProvider extends AppWidgetProvider {
@@ -89,7 +88,7 @@ public class TrashbinAppWidgetProvider extends AppWidgetProvider {
 
             Intent i = new Intent();
             i.putExtra(WIDGET_CLICKED_KEY, ALL_BUTTON);
-            i.setClassName("cz.optimization.odpadky", "cz.optimization.odpadky.MapsActivity");
+            i.setClassName("cz.optimization.odpadky", "cz.optimization.odpadky.ui.MapsActivity");
             i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(i);
             Log.v("OnsaveLiveData", "widgetprovider " +ALL_BUTTON);
@@ -99,49 +98,49 @@ public class TrashbinAppWidgetProvider extends AppWidgetProvider {
 
             Intent i = new Intent();
             i.putExtra(WIDGET_CLICKED_KEY, GLASS_BUTTON);
-            i.setClassName("cz.optimization.odpadky", "cz.optimization.odpadky.MapsActivity");
+            i.setClassName("cz.optimization.odpadky", "cz.optimization.odpadky.ui.MapsActivity");
             i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(i);
         } else if (CLEAR_GLASS_BUTTON.equals(intent.getAction())) {
 
             Intent i = new Intent();
             i.putExtra(WIDGET_CLICKED_KEY, CLEAR_GLASS_BUTTON);
-            i.setClassName("cz.optimization.odpadky", "cz.optimization.odpadky.MapsActivity");
+            i.setClassName("cz.optimization.odpadky", "cz.optimization.odpadky.ui.MapsActivity");
             i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(i);
         } else if (METAL_BUTTON.equals(intent.getAction())) {
 
             Intent i = new Intent();
             i.putExtra(WIDGET_CLICKED_KEY, METAL_BUTTON);
-            i.setClassName("cz.optimization.odpadky", "cz.optimization.odpadky.MapsActivity");
+            i.setClassName("cz.optimization.odpadky", "cz.optimization.odpadky.ui.MapsActivity");
             i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(i);
         } else if (PLASTIC_BUTTON.equals(intent.getAction())) {
 
             Intent i = new Intent();
             i.putExtra(WIDGET_CLICKED_KEY, PLASTIC_BUTTON);
-            i.setClassName("cz.optimization.odpadky", "cz.optimization.odpadky.MapsActivity");
+            i.setClassName("cz.optimization.odpadky", "cz.optimization.odpadky.ui.MapsActivity");
             i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(i);
         } else if (PAPER_BUTTON.equals(intent.getAction())) {
 
             Intent i = new Intent();
             i.putExtra(WIDGET_CLICKED_KEY, PAPER_BUTTON);
-            i.setClassName("cz.optimization.odpadky", "cz.optimization.odpadky.MapsActivity");
+            i.setClassName("cz.optimization.odpadky", "cz.optimization.odpadky.ui.MapsActivity");
             i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(i);
         } else if (CARTON_BUTTON.equals(intent.getAction())) {
 
             Intent i = new Intent();
             i.putExtra(WIDGET_CLICKED_KEY, CARTON_BUTTON);
-            i.setClassName("cz.optimization.odpadky", "cz.optimization.odpadky.MapsActivity");
+            i.setClassName("cz.optimization.odpadky", "cz.optimization.odpadky.ui.MapsActivity");
             i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(i);
         } else if (ELECTRICAL_BUTTON.equals(intent.getAction())) {
 
             Intent i = new Intent();
             i.putExtra(WIDGET_CLICKED_KEY, ELECTRICAL_BUTTON);
-            i.setClassName("cz.optimization.odpadky", "cz.optimization.odpadky.MapsActivity");
+            i.setClassName("cz.optimization.odpadky", "cz.optimization.odpadky.ui.MapsActivity");
             i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(i);
         }

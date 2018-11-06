@@ -1,4 +1,4 @@
-package cz.optimization.odpadky;
+package cz.optimization.odpadky.ui;
 
 import android.app.Dialog;
 import android.content.Context;
@@ -6,6 +6,8 @@ import android.support.v4.app.DialogFragment;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
+
+import cz.optimization.odpadky.R;
 
 
 /**

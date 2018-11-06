@@ -9,7 +9,7 @@
     android:name="com.google.android.gms.maps.SupportMapFragment"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="cz.optimization.odpadky.MapsActivity" />
+    tools:context="cz.optimization.odpadky.ui.MapsActivity" />
 
     <ProgressBar
         android:layout_width="wrap_content"

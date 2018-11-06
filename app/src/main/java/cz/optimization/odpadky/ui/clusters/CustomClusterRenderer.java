@@ -9,7 +9,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.maps.android.clustering.ClusterManager;
 import com.google.maps.android.clustering.view.DefaultClusterRenderer;
 
-import cz.optimization.odpadky.MapsActivity;
+import cz.optimization.odpadky.ui.MapsActivity;
 
 /**
  * Created by evi on 30. 1. 2018.

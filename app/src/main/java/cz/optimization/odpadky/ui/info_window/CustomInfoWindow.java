@@ -22,7 +22,7 @@ import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
 import java.util.List;
 
-import cz.optimization.odpadky.MapsActivity;
+import cz.optimization.odpadky.ui.MapsActivity;
 import cz.optimization.odpadky.R;
 import cz.optimization.odpadky.objects.Container;
 

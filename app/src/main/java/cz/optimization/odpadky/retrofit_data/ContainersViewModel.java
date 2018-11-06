@@ -4,15 +4,10 @@ import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.MutableLiveData;
 import android.arch.lifecycle.ViewModel;
 import android.util.Log;
-import android.view.View;
-import android.widget.Toast;
 
 import java.util.List;
 
-import cz.optimization.odpadky.MapsActivity;
-import cz.optimization.odpadky.R;
 import cz.optimization.odpadky.objects.Container;
-import cz.optimization.odpadky.objects.Place;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;

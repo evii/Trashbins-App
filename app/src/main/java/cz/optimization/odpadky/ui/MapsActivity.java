@@ -1,4 +1,4 @@
-package cz.optimization.odpadky;
+package cz.optimization.odpadky.ui;
 
 import android.app.ActivityOptions;
 import android.arch.lifecycle.Observer;
@@ -36,14 +36,13 @@ import com.google.maps.android.clustering.ClusterManager;
 import java.util.ArrayList;
 import java.util.List;
 
+import cz.optimization.odpadky.R;
 import cz.optimization.odpadky.objects.Container;
 import cz.optimization.odpadky.retrofit_data.APIClient;
 import cz.optimization.odpadky.retrofit_data.ContainersViewModel;
 import cz.optimization.odpadky.retrofit_data.GetDataService;
 import cz.optimization.odpadky.objects.Place;
 import cz.optimization.odpadky.retrofit_data.PlacesViewModel;
-import cz.optimization.odpadky.ui.DetailActivity;
-import cz.optimization.odpadky.ui.TrashbinAppWidgetProvider;
 import cz.optimization.odpadky.ui.clusters.CustomClusterRenderer;
 import cz.optimization.odpadky.ui.clusters.TrashbinClusterItem;
 import cz.optimization.odpadky.ui.info_window.CustomInfoWindow;
