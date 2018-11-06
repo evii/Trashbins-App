@@ -2,10 +2,15 @@ apply plugin: 'com.android.application'
 
 android {
     signingConfigs {
-
+        config {
+            keyAlias 'MyAndroidKey'
+            keyPassword 'odpadtrash123'
+            storeFile file('../app/keystore/key.jks')
+            storePassword 'trashodpad012'
+        }
     }
     compileSdkVersion 27
-    buildToolsVersion "28.0.1"
+    buildToolsVersion '28.0.2'
     defaultConfig {
         minSdkVersion 19
         targetSdkVersion 27
@@ -36,16 +41,16 @@ dependencies {
     implementation 'com.android.support:appcompat-v7:27.1.1'
     implementation 'com.android.support:customtabs:27.1.1'
     implementation 'com.android.support:preference-v7:27.1.1'
-    implementation 'com.google.android.gms:play-services-maps:15.0.1'
-    implementation 'com.android.support.constraint:constraint-layout:1.1.2'
+    implementation 'com.google.android.gms:play-services-maps:16.0.0'
+    implementation 'com.android.support.constraint:constraint-layout:1.1.3'
     implementation 'com.google.maps.android:android-maps-utils:0.5+'
     testImplementation 'junit:junit:4.12'
     implementation 'com.squareup.retrofit2:retrofit:2.4.0'
     implementation 'com.google.code.gson:gson:2.8.5'
     implementation 'com.squareup.retrofit2:converter-gson:2.4.0'
-    implementation 'com.google.android.gms:play-services-ads:15.0.1'
+    implementation 'com.google.android.gms:play-services-ads:17.0.0'
     implementation 'com.android.support:design:27.1.1'
-    implementation 'com.android.support:support-annotations:27.1.1'
+    implementation 'com.android.support:support-annotations:28.0.0'
     implementation 'android.arch.persistence.room:runtime:1.1.1'
     implementation 'android.arch.lifecycle:extensions:1.1.1'
     implementation "android.arch.lifecycle:viewmodel:1.1.1"
