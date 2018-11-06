@@ -463,7 +463,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         return false;
                     }
                 });
-
     }
 
     // helper method to transfer the List of places into the cluster items
