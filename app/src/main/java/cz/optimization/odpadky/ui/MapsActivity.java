@@ -106,7 +106,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         isInfoDisplayed = false;
         placesViewModel = ViewModelProviders.of(this).get(PlacesViewModel.class);
 
-
         //intial selectedType of map
         mHomeLatitude = 50.0889853530001;
         mHomeLongitude = 14.4723441130001;
