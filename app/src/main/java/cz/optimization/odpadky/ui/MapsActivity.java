@@ -737,7 +737,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     }
 
-
     // helper method to get clusteritems for container of selected type
     private List<TrashbinClusterItem> getContainersLocation(List<Container> containers) {
         List<TrashbinClusterItem> ListItems = new ArrayList<>();
