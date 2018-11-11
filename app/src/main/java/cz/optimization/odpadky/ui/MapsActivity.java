@@ -131,6 +131,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             previousPosition = selectedType;
         }
         mProgressBar = findViewById(R.id.progress_bar);
+
     }
 
     //saving selectedType and zoom on the map
