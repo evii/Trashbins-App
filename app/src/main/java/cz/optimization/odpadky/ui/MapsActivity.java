@@ -109,7 +109,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         //intial selectedType of map
         mHomeLatitude = 50.0889853530001;
         mHomeLongitude = 14.4723441130001;
-        mCameraZoom = 15.5f;
+        mCameraZoom = 14.5f;
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
