@@ -14,6 +14,7 @@ App displays **Google map** with locations of all trash bins in Prague. User can
 - App's **widget** navigates user quickly to the trash bins of selected type.
 - App uses **Android Design Support library**  - to design UI according to Android Material Design.
 
-To be able to use app properly, insert Google maps API key in value property in **AndroidManifest.xml**
+
+(To be able to use app properly, insert Google maps API key in value property in **AndroidManifest.xml**)
 
 ![Alt text](readme/manifestGoogleMapsAPI.png?raw=true "AndroidManifest.xml")
