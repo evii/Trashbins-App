@@ -130,7 +130,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         } else {
             previousPosition = selectedType;
         }
-
         mProgressBar = findViewById(R.id.progress_bar);
     }
 
