@@ -18,3 +18,6 @@ App displays **Google map** with locations of all trash bins in Prague. User can
 To be able to use app properly, insert Google maps API key in value property in **AndroidManifest.xml**
 
 ![Alt text](readme/manifestGoogleMapsAPI.png?raw=true "AndroidManifest.xml")
+
+## License
+The contents of this repository are covered under the [Apache License](https://github.com/evii/Trashbins-App/blob/master/LICENSE).
